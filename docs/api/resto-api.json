@@ -418,110 +418,68 @@
                                     "type": "object"
                                 },
                                 "example": {
-                                    "extent": {
-                                        "spatial": {
-                                            "bbox": [
-                                                [
-                                                    -180,
-                                                    -77.28054,
-                                                    180,
-                                                    82.77201
-                                                ]
-                                            ],
-                                            "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
-                                        },
-                                        "temporal": {
-                                            "interval": [
-                                                [
-                                                    "2018-09-13T05:58:08.367000Z",
-                                                    "2019-06-11T16:11:41.808000Z"
-                                                ]
-                                            ],
-                                            "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
-                                        }
-                                    },
-                                    "collections": [
+                                    "type": "Catalog",
+                                    "links": [
                                         {
-                                            "id": "L8",
-                                            "title": "Landsat-8",
-                                            "description": "Landsat represents the world's longest continuously acquired collection of space-based moderate-resolution land remote sensing data. Four decades of imagery provides a unique resource for those who work in agriculture, geology, forestry, regional planning, education, mapping, and global change research. Landsat images are also invaluable for emergency response and disaster relief",
-                                            "keywords": [
-                                                "landsat",
-                                                "level1C",
-                                                "USGS"
+                                            "rel": "self",
+                                            "type": "application/json",
+                                            "href": "https://api.staging.edito.eu/data/collections"
+                                        },
+                                        {
+                                            "rel": "root",
+                                            "type": "application/json",
+                                            "href": "https://api.staging.edito.eu/data"
+                                        },
+                                        {
+                                            "title": "All items",
+                                            "matched": 147868,
+                                            "rel": "items",
+                                            "type": "application/geo+json",
+                                            "href": "https://api.staging.edito.eu/data/search"
+                                        },
+                                        {
+                                            "title": "Animal Tracking Datasets",
+                                            "matched": 51,
+                                            "rel": "child",
+                                            "type": "application/json",
+                                            "href": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets",
+                                            "roles": [
+                                                "collection"
                                             ],
-                                            "license": "other",
-                                            "extent": {
-                                                "spatial": {
-                                                    "bbox": [
-                                                        [
-                                                            -180,
-                                                            -77.28054,
-                                                            180,
-                                                            82.77201
-                                                        ]
-                                                    ],
-                                                    "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
-                                                },
-                                                "temporal": {
-                                                    "interval": [
-                                                        [
-                                                            "2019-05-19T13:59:47.695508Z",
-                                                            "2019-06-06T13:28:04.338517Z"
-                                                        ]
-                                                    ],
-                                                    "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
-                                                }
-                                            },
-                                            "links": [
-                                                {
-                                                    "rel": "self",
-                                                    "type": "application/json",
-                                                    "href": "http://127.0.0.1:5252/collections.json?&_pretty=1"
-                                                },
-                                                {
-                                                    "rel": "root",
-                                                    "type": "application/json",
-                                                    "href": "http://127.0.0.1:5252"
-                                                }
+                                            "description": "A collection of public datasets from the European Tracking Network."
+                                        },
+                                        {
+                                            "title": "Age of sea ice (Climate Forecast convention)",
+                                            "matched": 45,
+                                            "rel": "child",
+                                            "type": "application/json",
+                                            "href": "https://api.staging.edito.eu/data/collections/climate_forecast-age_of_sea_ice",
+                                            "roles": [
+                                                "collection"
                                             ],
-                                            "resto:info": {
-                                                "model": "OpticalModel",
-                                                "lineage": [
-                                                    "DefaultModel",
-                                                    "LandCoverModel",
-                                                    "SatelliteModel",
-                                                    "OpticalModel"
-                                                ],
-                                                "owner": "203883411255198721"
-                                            },
-                                            "summaries": {
-                                                "datetime": {
-                                                    "minimum": "2019-05-19T13:59:47.695508Z",
-                                                    "maximum": "2019-06-06T13:28:04.338517Z"
-                                                },
-                                                "eo:instrument": [
-                                                    "OLI_TIRS",
-                                                    "TIRS"
-                                                ],
-                                                "eo:platform": [
-                                                    "LANDSAT_8"
-                                                ],
-                                                "processingLevel": [
-                                                    "LEVEL1C"
-                                                ],
-                                                "productType": [
-                                                    "L1GT",
-                                                    "L1TP"
-                                                ],
-                                                "sensorType": [
-                                                    "OPTICAL"
-                                                ]
-                                            },
-                                            "stac_version": "1.0.0",
-                                            "stac_extensions": [
-                                                "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
-                                            ]
+                                            "description": "\"Age of sea ice\" means the length of time elapsed since the ice formed. \"Sea ice\" means all ice floating in the sea which has formed from freezing sea water, rather than by other processes such as calving of land ice to form icebergs."
+                                        },
+                                        {
+                                            "title": "Air pressure at mean sea level (Climate Forecast convention)",
+                                            "matched": 2938,
+                                            "rel": "child",
+                                            "type": "application/json",
+                                            "href": "https://api.staging.edito.eu/data/collections/climate_forecast-air_pressure_at_mean_sea_level",
+                                            "roles": [
+                                                "collection"
+                                            ],
+                                            "description": "Air pressure at sea level is the quantity often abbreviated as MSLP or PMSL. Air pressure is the force per unit area which would be exerted when the moving gas molecules of which the air is composed strike a theoretical surface of any orientation. \"Mean sea level\" means the time mean of sea surface elevation at a given location over an arbitrary period sufficient to eliminate the tidal signals."
+                                        },
+                                        {
+                                            "title": "Air temperature (Climate Forecast convention)",
+                                            "matched": 64,
+                                            "rel": "child",
+                                            "type": "application/json",
+                                            "href": "https://api.staging.edito.eu/data/collections/climate_forecast-air_temperature",
+                                            "roles": [
+                                                "collection"
+                                            ],
+                                            "description": "Air temperature is the bulk temperature of the air, not the surface (skin) temperature."
                                         }
                                     ]
                                 }
@@ -578,7 +536,7 @@
                                 },
                                 "example": {
                                     "status": "success",
-                                    "message": "Collection S2 created"
+                                    "message": "Collection ocean_temperature_products created"
                                 }
                             }
                         }
@@ -609,6 +567,10 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ForbiddenError"
+                                },
+                                "example": {
+                                    "ErrorCode": 403,
+                                    "ErrorMessage": "createCollection - Insufficient rights to create a collection in group default"
                                 }
                             }
                         }
@@ -744,6 +706,10 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ForbiddenError"
+                                },
+                                "example": {
+                                    "ErrorCode": 403,
+                                    "ErrorMessage": "updateCollection - Forbidden to update collection visibility"
                                 }
                             }
                         }
@@ -836,6 +802,10 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ForbiddenError"
+                                },
+                                "example": {
+                                    "ErrorCode": 403,
+                                    "ErrorMessage": "deleteCollection - Insufficient rights to delete a collection"
                                 }
                             }
                         }
@@ -1334,7 +1304,7 @@
             },
             "post": {
                 "tags": [
-                    "Collection"
+                    "Feature"
                 ],
                 "summary": "Add feature(s) to collection",
                 "operationId": "CollectionsAPI::insertFeatures",
@@ -1402,6 +1372,34 @@
                                         "$ref": "#/components/schemas/InputFeature"
                                     }
                                 ]
+                            },
+                            "example": {
+                                "type": "Feature",
+                                "id": "european_eel_acoustic_tracking_2025",
+                                "geometry": {
+                                    "type": "Polygon",
+                                    "coordinates": [
+                                        [
+                                            [-5.0, 43.0],
+                                            [-5.0, 55.0],
+                                            [15.0, 55.0],
+                                            [15.0, 43.0],
+                                            [-5.0, 43.0]
+                                        ]
+                                    ]
+                                },
+                                "properties": {
+                                    "title": "European Eel Acoustic Tracking Dataset",
+                                    "description": "Acoustic telemetry tracking data for European eels (Anguilla anguilla) across European freshwater systems",
+                                    "start_datetime": "2025-01-01T00:00:00.000000Z",
+                                    "end_datetime": "2025-12-31T23:59:59.000000Z",
+                                    "productIdentifier": "European_Eel_ATD_2025",
+                                    "license": "https://creativecommons.org/licenses/by/4.0/",
+                                    "number_of_detections": 1250,
+                                    "taxa": [
+                                        "Anguilla anguilla (Linnaeus, 1758)"
+                                    ]
+                                }
                             }
                         }
                     }
@@ -1435,8 +1433,8 @@
                                 "example": {
                                     "status": "success",
                                     "message": "Feature inserted",
-                                    "collection": "S2",
-                                    "featureId": "c4f6ed9f-35ba-5c85-8449-e437c14ae428"
+                                    "collection": "animal_tracking_datasets",
+                                    "featureId": "european_eel_acoustic_tracking_2025"
                                 }
                             }
                         }
@@ -1546,12 +1544,137 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/OutputFeature"
+                                },
+                                "example": {
+                                    "type": "Feature",
+                                    "id": "f96c1e37-1a8f-556c-b73f-0d5bdd7c13b2",
+                                    "geometry": {
+                                        "type": "Polygon",
+                                        "coordinates": [
+                                            [
+                                                [180, -90],
+                                                [180, 90],
+                                                [-180, 90],
+                                                [-180, -90],
+                                                [180, -90]
+                                            ]
+                                        ]
+                                    },
+                                    "properties": {
+                                        "productIdentifier": "RATJADA_detections",
+                                        "title": "Ratjada Detections",
+                                        "start_datetime": "2025-01-01T00:00:00.000000Z",
+                                        "end_datetime": "2025-01-01T00:00:00.000000Z",
+                                        "file_name": "RATJADA_detections.parquet",
+                                        "relative_path": "detections/RATJADA/RATJADA_detections.parquet",
+                                        "license": "https://creativecommons.org/licenses/by/4.0/",
+                                        "number_of_detections": 85,
+                                        "marineinfo_id": "https://marineinfo.org/id/dataset/8761",
+                                        "doi": "https://doi.org/None",
+                                        "citation": "Aspillaga, E.; Abad-Platas, J.; Alós, J.; 2025. Contribution to the effect of Marine Protected Areas on the maintenance of the biodiversity of Balearic Islands batoid chondrichthyans using acoustic telemetry (RATJADA)",
+                                        "taxa": [
+                                            "Chondrichthyes",
+                                            "Dasyatis pastinaca (Linneaus, 1758)",
+                                            "Gymnura altavela",
+                                            "Mustelus mustelus (Linneaus, 1758)",
+                                            "Myliobatiformes",
+                                            "Myliobatis aquila (Linnaeus 1758)",
+                                            "Raja miraletus Linnaeus, 1758",
+                                            "Raja polystigma",
+                                            "Rajiformes",
+                                            "Torpediniformes",
+                                            "Torpedo marmorata Risso, 1810"
+                                        ],
+                                        "updated": "2025-11-25T10:48:29.539166Z",
+                                        "created": "2025-11-25T10:48:29.539166Z",
+                                        "likes": 0,
+                                        "comments": 0,
+                                        "owner": "226779592474001643",
+                                        "status": 1,
+                                        "centroid": [0, 0],
+                                        "ssys:targets": ["earth"]
+                                    },
+                                    "collection": "animal_tracking_datasets",
+                                    "links": [
+                                        {
+                                            "rel": "self",
+                                            "type": "application/geo+json",
+                                            "href": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets/items/f96c1e37-1a8f-556c-b73f-0d5bdd7c13b2"
+                                        },
+                                        {
+                                            "rel": "parent",
+                                            "type": "application/json",
+                                            "title": "animal_tracking_datasets",
+                                            "href": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets"
+                                        },
+                                        {
+                                            "rel": "collection",
+                                            "type": "application/json",
+                                            "title": "animal_tracking_datasets",
+                                            "href": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets"
+                                        },
+                                        {
+                                            "rel": "root",
+                                            "type": "application/json",
+                                            "href": "https://api.staging.edito.eu/data"
+                                        }
+                                    ],
+                                    "assets": {
+                                        "data": {
+                                            "href": "https://www.lifewatch.be/etn/parquet/detections/RATJADA/RATJADA_detections.parquet",
+                                            "type": "application/x-parquet",
+                                            "title": "RATJADA_detections.parquet",
+                                            "roles": ["data"]
+                                        },
+                                        "data-datalab-data-explorer": {
+                                            "href": "https://datalab.dive.edito.eu/data-explorer?source=https://www.lifewatch.be/etn/parquet/detections/RATJADA/RATJADA_detections.parquet",
+                                            "title": "RATJADA_detections.parquet (Open in Data Explorer)",
+                                            "type": "text/html",
+                                            "roles": ["data", "graphic"]
+                                        }
+                                    },
+                                    "stac_version": "1.1.0",
+                                    "stac_extensions": ["https://stac-extensions.github.io/ssys/v1.1.0/schema.json"],
+                                    "bbox": [-180, -90, 180, 90],
+                                    "@context": "https://schema.org/",
+                                    "@type": "DataCatalog",
+                                    "name": "f96c1e37-1a8f-556c-b73f-0d5bdd7c13b2",
+                                    "identifier": "f96c1e37-1a8f-556c-b73f-0d5bdd7c13b2",
+                                    "isBasedOn": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets/items/f96c1e37-1a8f-556c-b73f-0d5bdd7c13b2",
+                                    "url": "https://radiantearth.github.io/stac-browser/#/external/api.staging.edito.eu/data/collections/animal_tracking_datasets/items/f96c1e37-1a8f-556c-b73f-0d5bdd7c13b2",
+                                    "spatialCoverage": {
+                                        "@type": "Place",
+                                        "geo": {
+                                            "@type": "GeoShape",
+                                            "box": "-180 -90 180 90"
+                                        }
+                                    },
+                                    "temporalCoverage": "2025-01-01T00:00:00.000000Z/2025-01-01T00:00:00.000000Z",
+                                    "distribution": [
+                                        {
+                                            "contentUrl": "https://www.lifewatch.be/etn/parquet/detections/RATJADA/RATJADA_detections.parquet",
+                                            "fileFormat": "application/x-parquet",
+                                            "title": "RATJADA_detections.parquet"
+                                        },
+                                        {
+                                            "contentUrl": "https://datalab.dive.edito.eu/data-explorer?source=https://www.lifewatch.be/etn/parquet/detections/RATJADA/RATJADA_detections.parquet",
+                                            "fileFormat": "text/html",
+                                            "title": "RATJADA_detections.parquet (Open in Data Explorer)"
+                                        }
+                                    ]
                                 }
                             }
                         }
                     },
                     "404": {
-                        "description": "Feature not found"
+                        "description": "Feature not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -2213,7 +2336,7 @@
                         "description": "Group name",
                         "required": true,
                         "schema": {
-                            "type": "name"
+                            "type": "string"
                         }
                     }
                 ],
@@ -2674,15 +2797,49 @@
                 ]
             }
         },
-        "/catalogs/*": {
+        "/catalogs/projects": {
             "get": {
                 "tags": [
                     "STAC"
                 ],
-                "summary": "Get STAC catalogs",
+                "summary": "Get project catalogs",
+                "description": "Get all catalogs under the projects scope",
+                "operationId": "STACAPI::getProjectCatalogs",
+                "responses": {
+                    "200": {
+                        "description": "STAC catalog definition - contains links to project catalogs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Catalog"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/catalogs/projects/{catalogId}": {
+            "get": {
+                "tags": [
+                    "STAC"
+                ],
+                "summary": "Get STAC catalog by Id",
                 "description": "Get STAC catalogs",
-                "operationId": "STACAPI::getCatalogs",
+                "operationId": "STACAPI::getCatalog",
                 "parameters": [
+                    {
+                        "name": "catalogId",
+                        "in": "path",
+                        "description": "Catalog identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     {
                         "name": "q",
                         "in": "query",
@@ -2809,88 +2966,6 @@
                     }
                 ]
             },
-            "post": {
-                "tags": [
-                    "STAC"
-                ],
-                "summary": "Add a STAC catalog",
-                "description": "Add a STAC catalog",
-                "operationId": "STACAPI::addCatalog",
-                "requestBody": {
-                    "description": "A valid STAC Catalog",
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Catalog"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "The catalog is created",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "description": "Status is *success*",
-                                            "type": "string"
-                                        },
-                                        "message": {
-                                            "description": "Message information",
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                },
-                                "example": {
-                                    "status": "success",
-                                    "message": "Catalog created"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Missing one of the mandatory input property",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BadRequestError"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/UnauthorizedError"
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Only user with *createCatalog* rights can create a catalog",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ForbiddenError"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": [],
-                        "bearerAuth": [],
-                        "queryAuth": []
-                    }
-                ]
-            },
             "delete": {
                 "tags": [
                     "STAC"
@@ -2975,6 +3050,101 @@
                 ]
             }
         },
+        "/catalogs/users/{username}": {
+            "post": {
+                "tags": [
+                    "STAC"
+                ],
+                "summary": "Create a catalog in user private space",
+                "description": "Any user can create a catalog under their own private space /catalogs/users/{username}",
+                "operationId": "STACAPI::addCatalog",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": "path",
+                        "description": "Username",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "A valid STAC Catalog",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Catalog"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The catalog is created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Catalog created"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing one of the mandatory input property",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - can only create catalogs in your own private space",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        },
         "/assets/{urlInBase64}": {
             "get": {
                 "tags": [
@@ -3004,37 +3174,6 @@
                 }
             }
         },
-        "/children": {
-            "get": {
-                "tags": [
-                    "STAC"
-                ],
-                "summary": "Get root child catalogs",
-                "description": "List of children of this catalog",
-                "operationId": "STACAPI::getChildren",
-                "responses": {
-                    "200": {
-                        "description": "List of children of the root catalog",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "features": {
-                                            "description": "Array of features",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/OutputFeature"
-                                            }
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/queryables": {
             "get": {
                 "tags": [
@@ -3050,6 +3189,32 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Queryables"
+                                },
+                                "example": {
+                                    "$schema": "https://json-schema.org/draft/2019-09/schema",
+                                    "$id": "https://api.staging.edito.eu/data/queryables",
+                                    "type": "object",
+                                    "title": "Queryables for Example STAC API",
+                                    "description": "Queryable names for the example STAC API Item Search filter.",
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "description": "Array of item ids to return. All other filter parameters that further restrict the number of search results (except next and limit) are ignored"
+                                        },
+                                        "geometry": {
+                                            "type": "object",
+                                            "description": "Region of Interest defined in GeoJSON or in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)"
+                                        },
+                                        "collection": {
+                                            "type": "string",
+                                            "description": "Comma separated list of collections name"
+                                        },
+                                        "datetime": {
+                                            "type": "string",
+                                            "description": "Single date+time, or a range (\"/\" separator) of the search query. Format should follow RFC-3339. Equivalent to OpenSearch {time:start}/{time:end}"
+                                        }
+                                    },
+                                    "additionalProperties": true
                                 }
                             }
                         }
@@ -3674,6 +3839,160 @@
                                         }
                                     },
                                     "type": "object"
+                                },
+                                "example": {
+                                    "stac_version": "1.1.0",
+                                    "id": "root",
+                                    "type": "Catalog",
+                                    "title": "EDITO Data Catalog",
+                                    "description": "The European Digital Twin Ocean data catalog is an open and collaborative catalog of marine resources",
+                                    "resto:version": "9.8.0",
+                                    "ssys:targets": ["earth"],
+                                    "links": [
+                                        {
+                                            "rel": "self",
+                                            "type": "application/json",
+                                            "title": "EDITO Data Catalog",
+                                            "href": "https://api.staging.edito.eu/data"
+                                        },
+                                        {
+                                            "rel": "service-desc",
+                                            "type": "application/vnd.oai.openapi+json;version=3.0",
+                                            "title": "OpenAPI 3.0 definition endpoint",
+                                            "href": "https://api.staging.edito.eu/data/api"
+                                        },
+                                        {
+                                            "rel": "service-doc",
+                                            "type": "text/html",
+                                            "title": "OpenAPI 3.0 definition endpoint documentation",
+                                            "href": "https://docs.staging.edito.eu/articles/integration/interactWithTheDataAPI.html"
+                                        },
+                                        {
+                                            "rel": "conformance",
+                                            "type": "application/json",
+                                            "title": "Conformance declaration",
+                                            "href": "https://api.staging.edito.eu/data/conformance"
+                                        },
+                                        {
+                                            "rel": "children",
+                                            "type": "application/json",
+                                            "title": "Children",
+                                            "href": "https://api.staging.edito.eu/data/children"
+                                        },
+                                        {
+                                            "rel": "http://www.opengis.net/def/rel/ogc/1.0/queryables",
+                                            "type": "application/schema+json",
+                                            "title": "Queryables",
+                                            "href": "https://api.staging.edito.eu/data/queryables"
+                                        },
+                                        {
+                                            "rel": "data",
+                                            "type": "application/json",
+                                            "title": "Collections",
+                                            "href": "https://api.staging.edito.eu/data/collections"
+                                        },
+                                        {
+                                            "rel": "child",
+                                            "title": "Collections",
+                                            "type": "application/json",
+                                            "href": "https://api.staging.edito.eu/data/collections",
+                                            "roles": ["collections"]
+                                        },
+                                        {
+                                            "rel": "child",
+                                            "type": "application/json",
+                                            "title": "Catalogs",
+                                            "href": "https://api.staging.edito.eu/data/catalogs"
+                                        },
+                                        {
+                                            "rel": "root",
+                                            "type": "application/json",
+                                            "title": "EDITO Data Catalog",
+                                            "href": "https://api.staging.edito.eu/data"
+                                        },
+                                        {
+                                            "rel": "search",
+                                            "type": "application/geo+json",
+                                            "title": "STAC search endpoint (GET)",
+                                            "href": "https://api.staging.edito.eu/data/search",
+                                            "method": "GET"
+                                        },
+                                        {
+                                            "rel": "search",
+                                            "type": "application/geo+json",
+                                            "title": "STAC search endpoint (POST)",
+                                            "href": "https://api.staging.edito.eu/data/search",
+                                            "method": "POST"
+                                        },
+                                        {
+                                            "id": "projects/emodnet",
+                                            "rel": "child",
+                                            "type": "application/json",
+                                            "href": "https://api.staging.edito.eu/data/catalogs/projects/emodnet",
+                                            "title": "EMODnet",
+                                            "description": "STAC Catalog for EMODnet"
+                                        }
+                                    ],
+                                    "conformsTo": [
+                                        "https://api.stacspec.org/v1.0.0/core",
+                                        "https://api.stacspec.org/v1.0.0/collections",
+                                        "https://api.stacspec.org/v1.0.0/ogcapi-features",
+                                        "https://api.stacspec.org/v1.0.0-rc.3/browseable",
+                                        "https://api.stacspec.org/v1.0.0-rc.2/children",
+                                        "https://api.stacspec.org/v1.0.0/item-search",
+                                        "https://api.stacspec.org/v1.0.0/item-search#fields",
+                                        "https://api.stacspec.org/v1.0.0/item-search#sort",
+                                        "https://api.stacspec.org/v1.0.0/item-search#filter",
+                                        "https://api.stacspec.org/v1.0.0/ogcapi-features#fields",
+                                        "https://api.stacspec.org/v1.0.0/ogcapi-features#sort",
+                                        "https://api.stacspec.org/v1.0.0/ogcapi-features#filter",
+                                        "http://www.opengis.net/spec/ogcapi_common-2/1.0/conf/collections",
+                                        "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core",
+                                        "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson",
+                                        "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/oas30",
+                                        "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/html",
+                                        "http://www.opengis.net/spec/ogcapi-features-3/1.0/conf/filter",
+                                        "http://www.opengis.net/spec/ogcapi-features-3/1.0/conf/features-filter",
+                                        "http://www.opengis.net/spec/cql2/1.0/conf/basic-cql2",
+                                        "http://www.opengis.net/spec/cql2/1.0/conf/cql2-text",
+                                        "http://www.opengis.net/spec/cql2/1.0/conf/basic-spatial-functions",
+                                        "http://www.opengis.net/spec/cql2/1.0/conf/basic-spatial-functions-plus",
+                                        "http://www.opengis.net/spec/cql2/1.0/conf/advanced-comparison-operators",
+                                        "https://api.snapplanet.io/v1.0.0/resto-core",
+                                        "https://api.snapplanet.io/v1.0.0/auth",
+                                        "https://api.snapplanet.io/v1.0.0/cataloger",
+                                        "https://api.snapplanet.io/v1.0.0/gazetteer",
+                                        "https://api.snapplanet.io/v1.0.0/mvt",
+                                        "https://api.snapplanet.io/v1.0.0/proxy",
+                                        "https://api.snapplanet.io/v1.0.0/view"
+                                    ],
+                                    "@context": "https://schema.org/",
+                                    "@type": "DataCatalog",
+                                    "name": "EDITO Data Catalog",
+                                    "identifier": "root",
+                                    "isBasedOn": "https://api.staging.edito.eu/data",
+                                    "url": "https://radiantearth.github.io/stac-browser/#/external/api.staging.edito.eu/data",
+                                    "isPartOf": [],
+                                    "hasPart": [
+                                        {
+                                            "@type": "DataCatalog",
+                                            "name": "Collections",
+                                            "isBaseOn": "https://api.staging.edito.eu/data/collections",
+                                            "url": "https://radiantearth.github.io/stac-browser/#/external/api.staging.edito.eu/data/collections"
+                                        },
+                                        {
+                                            "@type": "DataCatalog",
+                                            "name": "Catalogs",
+                                            "isBaseOn": "https://api.staging.edito.eu/data/catalogs",
+                                            "url": "https://radiantearth.github.io/stac-browser/#/external/api.staging.edito.eu/data/catalogs"
+                                        },
+                                        {
+                                            "@type": "DataCatalog",
+                                            "name": "EMODnet",
+                                            "isBaseOn": "https://api.staging.edito.eu/data/catalogs/projects/emodnet",
+                                            "url": "https://radiantearth.github.io/stac-browser/#/external/api.staging.edito.eu/data/catalogs/projects/emodnet"
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -4443,109 +4762,40 @@
                 },
                 "type": "object",
                 "example": {
-                    "id": "S2",
+                    "id": "ocean_temperature_products",
                     "type": "Collection",
-                    "title": "Level 1C Sentinel-2 images",
-                    "description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
-                    "version": "1.0",
-                    "model": "OpticalModel",
+                    "title": "Copernicus Ocean Temperature Products",
+                    "description": "Sea surface temperature (SST) datasets from Copernicus Marine Service providing operational oceanographic data.",
+                    "version": "2.0",
+                    "model": "DTOModel",
                     "visibility": [
                         "default"
                     ],
-                    "license": "other",
+                    "license": "CC-BY-4.0",
                     "providers": [
                         {
-                            "name": "European Union/ESA/Copernicus",
+                            "name": "European Union/Copernicus Marine Service",
                             "roles": [
                                 "producer",
                                 "licensor"
                             ],
-                            "url": "https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi"
+                            "url": "https://marine.copernicus.eu/"
                         }
                     ],
                     "links": [
                         {
                             "rel": "license",
-                            "href": "https://scihub.copernicus.eu/twiki/pub/SciHubWebPortal/TermsConditions/Sentinel_Data_Terms_and_Conditions.pdf",
-                            "title": "Legal notice on the use of Copernicus Sentinel Data and Service Information"
+                            "href": "https://marine.copernicus.eu/about/copernicus-marine-data-terms-conditions/",
+                            "title": "Copernicus Marine Data Terms and Conditions"
                         }
                     ],
-                    "summaries": {
-                        "bands": [
-                            {
-                                "name": "B1",
-                                "common_name": "coastal",
-                                "center_wavelength": 4.439,
-                                "gsd": 60
-                            },
-                            {
-                                "name": "B2",
-                                "common_name": "blue",
-                                "center_wavelength": 4.966,
-                                "gsd": 10
-                            },
-                            {
-                                "name": "B3",
-                                "common_name": "green",
-                                "center_wavelength": 5.6,
-                                "gsd": 10
-                            },
-                            {
-                                "name": "B4",
-                                "common_name": "red",
-                                "center_wavelength": 6.645,
-                                "gsd": 10
-                            },
-                            {
-                                "name": "B5",
-                                "center_wavelength": 7.039,
-                                "gsd": 20
-                            },
-                            {
-                                "name": "B6",
-                                "center_wavelength": 7.402,
-                                "gsd": 20
-                            },
-                            {
-                                "name": "B7",
-                                "center_wavelength": 7.825,
-                                "gsd": 20
-                            },
-                            {
-                                "name": "B8",
-                                "common_name": "nir",
-                                "center_wavelength": 8.351,
-                                "gsd": 10
-                            },
-                            {
-                                "name": "B8A",
-                                "center_wavelength": 8.648,
-                                "gsd": 20
-                            },
-                            {
-                                "name": "B9",
-                                "center_wavelength": 9.45,
-                                "gsd": 60
-                            },
-                            {
-                                "name": "B10",
-                                "center_wavelength": 1.3735,
-                                "gsd": 60
-                            },
-                            {
-                                "name": "B11",
-                                "common_name": "swir16",
-                                "center_wavelength": 1.6137,
-                                "gsd": 20
-                            },
-                            {
-                                "name": "B12",
-                                "common_name": "swir22",
-                                "center_wavelength": 2.2024,
-                                "gsd": 20
-                            }
-                        ]
-                    }
+                    "keywords": [
+                        "ocean",
+                        "temperature",
+                        "sst",
+                        "copernicus",
+                        "marine"
+                    ]
                 }
             },
             "OutputCollection": {
@@ -4643,27 +4893,23 @@
                 },
                 "type": "object",
                 "example": {
-                    "id": "S2",
-                    "title": "Sentinel-2",
-                    "description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
-                    "keywords": [
-                        "copernicus",
-                        "esa",
-                        "eu",
-                        "msi",
-                        "radiance",
-                        "sentinel",
-                        "sentinel2"
-                    ],
-                    "license": "other",
+                    "stac_version": "1.1.0",
+                    "stac_extensions": [],
+                    "id": "animal_tracking_datasets",
+                    "type": "Collection",
+                    "title": "Animal Tracking Datasets",
+                    "description": "A collection of public datasets from the European Tracking Network.",
+                    "version": "1.0.0",
+                    "aliases": [],
+                    "license": "CCBYNC",
                     "extent": {
                         "spatial": {
                             "bbox": [
                                 [
-                                    -48.6198530870596,
-                                    74.6749788966259,
-                                    -44.6464244356188,
-                                    75.6843970710939
+                                    -180,
+                                    -90,
+                                    180,
+                                    90
                                 ]
                             ],
                             "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
@@ -4671,8 +4917,8 @@
                         "temporal": {
                             "interval": [
                                 [
-                                    "2019-06-11T16:11:41.808000Z",
-                                    "2019-06-11T16:11:41.808000Z"
+                                    "1970-01-01T00:00:00.000000Z",
+                                    "2025-01-01T00:00:00.000000Z"
                                 ]
                             ],
                             "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
@@ -4682,135 +4928,63 @@
                         {
                             "rel": "self",
                             "type": "application/json",
-                            "href": "http://127.0.0.1:5252/collections/S2.json?&_pretty=1"
+                            "href": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets"
                         },
                         {
                             "rel": "root",
                             "type": "application/json",
-                            "href": "http://127.0.0.1:5252"
+                            "href": "https://api.staging.edito.eu/data"
                         },
                         {
-                            "rel": "license",
-                            "href": "https://scihub.copernicus.eu/twiki/pub/SciHubWebPortal/TermsConditions/Sentinel_Data_Terms_and_Conditions.pdf",
-                            "title": "Legal notice on the use of Copernicus Sentinel Data and Service Information"
+                            "rel": "items",
+                            "title": "All items",
+                            "type": "application/geo+json",
+                            "href": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets/items"
+                        },
+                        {
+                            "rel": "http://www.opengis.net/def/rel/ogc/1.0/queryables",
+                            "type": "application/schema+json",
+                            "title": "Queryables",
+                            "href": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets/queryables"
                         }
                     ],
                     "resto:info": {
-                        "model": "OpticalModel",
+                        "model": "DTOModel",
                         "lineage": [
                             "DefaultModel",
-                            "LandCoverModel",
-                            "SatelliteModel",
-                            "OpticalModel"
+                            "DTOModel"
                         ],
-                        "owner": "203883411255198721"
+                        "owner": "226779592474001643"
                     },
-                    "providers": [
-                        {
-                            "name": "European Union/ESA/Copernicus",
-                            "roles": [
-                                "producer",
-                                "licensor"
-                            ],
-                            "url": "https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi"
-                        }
-                    ],
+                    "keywords": [],
+                    "providers": [],
+                    "assets": {},
                     "summaries": {
                         "datetime": {
-                            "minimum": "2019-06-11T16:11:41.808000Z",
-                            "maximum": "2019-06-11T16:11:41.808000Z"
+                            "minimum": "1970-01-01T00:00:00.000000Z",
+                            "maximum": "2025-01-01T00:00:00.000000Z"
                         },
-                        "eo:instrument": [
-                            "MSI"
-                        ],
-                        "eo:platform": [
-                            "S2A"
-                        ],
-                        "processingLevel": [
-                            "LEVEL1C"
-                        ],
-                        "productType": [
-                            "REFLECTANCE"
-                        ],
-                        "bands": [
-                            {
-                                "name": "B1",
-                                "common_name": "coastal",
-                                "center_wavelength": 4.439,
-                                "gsd": 60
-                            },
-                            {
-                                "name": "B2",
-                                "common_name": "blue",
-                                "center_wavelength": 4.966,
-                                "gsd": 10
-                            },
-                            {
-                                "name": "B3",
-                                "common_name": "green",
-                                "center_wavelength": 5.6,
-                                "gsd": 10
-                            },
-                            {
-                                "name": "B4",
-                                "common_name": "red",
-                                "center_wavelength": 6.645,
-                                "gsd": 10
-                            },
-                            {
-                                "name": "B5",
-                                "center_wavelength": 7.039,
-                                "gsd": 20
-                            },
-                            {
-                                "name": "B6",
-                                "center_wavelength": 7.402,
-                                "gsd": 20
-                            },
-                            {
-                                "name": "B7",
-                                "center_wavelength": 7.825,
-                                "gsd": 20
-                            },
-                            {
-                                "name": "B8",
-                                "common_name": "nir",
-                                "center_wavelength": 8.351,
-                                "gsd": 10
-                            },
-                            {
-                                "name": "B8A",
-                                "center_wavelength": 8.648,
-                                "gsd": 20
-                            },
-                            {
-                                "name": "B9",
-                                "center_wavelength": 9.45,
-                                "gsd": 60
-                            },
-                            {
-                                "name": "B10",
-                                "center_wavelength": 1.3735,
-                                "gsd": 60
-                            },
-                            {
-                                "name": "B11",
-                                "common_name": "swir16",
-                                "center_wavelength": 1.6137,
-                                "gsd": 20
-                            },
-                            {
-                                "name": "B12",
-                                "common_name": "swir22",
-                                "center_wavelength": 2.2024,
-                                "gsd": 20
-                            }
-                        ]
+                        "collection": {
+                            "const": "animal_tracking_datasets",
+                            "count": 51,
+                            "type": "string"
+                        }
                     },
-                    "stac_version": "1.0.0",
-                    "stac_extensions": [
-                        "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
-                    ]
+                    "@context": "https://schema.org/",
+                    "@type": "DataCatalog",
+                    "name": "Animal Tracking Datasets",
+                    "identifier": "animal_tracking_datasets",
+                    "isBasedOn": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets",
+                    "url": "https://radiantearth.github.io/stac-browser/#/external/api.staging.edito.eu/data/collections/animal_tracking_datasets",
+                    "spatialCoverage": {
+                        "@type": "Place",
+                        "geo": {
+                            "@type": "GeoShape",
+                            "box": "-180 -90 180 90"
+                        }
+                    },
+                    "temporalCoverage": "1970-01-01T00:00:00.000000Z/2025-01-01T00:00:00.000000Z",
+                    "isPartOf": []
                 }
             },
             "Provider": {
@@ -5332,125 +5506,176 @@
                 "type": "object",
                 "example": {
                     "type": "FeatureCollection",
+                    "id": "b9b7854c-56b4-5946-b6ba-f9df457c99d6",
+                    "context": {
+                        "returned": 2,
+                        "limit": "2",
+                        "matched": 51,
+                        "exactCount": true,
+                        "startIndex": 1,
+                        "query": {
+                            "inputFilters": {
+                                "startIndex": "1",
+                                "page": "1",
+                                "limit": "2"
+                            },
+                            "appliedFilters": {
+                                "startIndex": {
+                                    "value": "1",
+                                    "operation": null
+                                },
+                                "page": {
+                                    "value": "1",
+                                    "operation": null
+                                },
+                                "limit": {
+                                    "value": "2",
+                                    "operation": null
+                                },
+                                "collections": {
+                                    "value": "animal_tracking_datasets",
+                                    "operation": "="
+                                }
+                            },
+                            "processingTime": 0.010645866394042969
+                        }
+                    },
+                    "links": [
+                        {
+                            "rel": "self",
+                            "type": "application/geo+json",
+                            "href": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets/items?&startIndex=1&page=1&limit=2"
+                        },
+                        {
+                            "rel": "root",
+                            "type": "application/json",
+                            "href": "https://api.staging.edito.eu/data"
+                        },
+                        {
+                            "rel": "next",
+                            "type": "application/geo+json",
+                            "href": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets/items?&startIndex=1&page=1&limit=2&next=226390494412917801"
+                        }
+                    ],
+                    "timeStamp": "2026-03-27T14:51:17Z",
+                    "numberMatched": 51,
+                    "numberReturned": 2,
                     "features": [
                         {
-                            "stac_version": "1.0.0",
-                            "stac_extensions": [
-                                "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
-                            ],
                             "type": "Feature",
-                            "id": "8030a391-4002-556f-929b-d7ff9dad6705",
-                            "bbox": [
-                                -48.6198530870596,
-                                74.6749788966259,
-                                -44.6464244356188,
-                                75.6843970710939
-                            ],
+                            "id": "f96c1e37-1a8f-556c-b73f-0d5bdd7c13b2",
                             "geometry": {
                                 "type": "Polygon",
                                 "coordinates": [
                                     [
-                                        [
-                                            -48.619853,
-                                            75.657209
-                                        ],
-                                        [
-                                            -44.646424,
-                                            75.684397
-                                        ],
-                                        [
-                                            -44.660672,
-                                            75.069386
-                                        ],
-                                        [
-                                            -44.698432,
-                                            75.060518
-                                        ],
-                                        [
-                                            -45.489771,
-                                            74.830977
-                                        ],
-                                        [
-                                            -45.857954,
-                                            74.720238
-                                        ],
-                                        [
-                                            -45.921685,
-                                            74.698702
-                                        ],
-                                        [
-                                            -48.392706,
-                                            74.674979
-                                        ],
-                                        [
-                                            -48.619853,
-                                            75.657209
-                                        ]
+                                        [180, -90],
+                                        [180, 90],
+                                        [-180, 90],
+                                        [-180, -90],
+                                        [180, -90]
                                     ]
                                 ]
                             },
                             "properties": {
-                                "datetime": "2019-06-11T16:11:41Z",
-                                "productIdentifier": "S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040",
-                                "startDate": "2019-06-11T16:11:41.808000Z"
+                                "productIdentifier": "RATJADA_detections",
+                                "title": "Ratjada Detections",
+                                "start_datetime": "2025-01-01T00:00:00.000000Z",
+                                "end_datetime": "2025-01-01T00:00:00.000000Z",
+                                "license": "https://creativecommons.org/licenses/by/4.0/",
+                                "number_of_detections": 85,
+                                "citation": "Aspillaga et al. 2025. Contribution to the effect of Marine Protected Areas on batoid biodiversity",
+                                "updated": "2025-11-25T10:48:29.539166Z",
+                                "created": "2025-11-25T10:48:29.539166Z",
+                                "likes": 0,
+                                "owner": "226779592474001643",
+                                "status": 1
                             },
-                            "collection": "S2",
+                            "collection": "animal_tracking_datasets",
                             "links": [
                                 {
                                     "rel": "self",
-                                    "type": "application/json",
-                                    "href": "http://127.0.0.1:5252/collections/S2/items/8030a391-4002-556f-929b-d7ff9dad6705?&lang=en"
+                                    "type": "application/geo+json",
+                                    "href": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets/items/f96c1e37-1a8f-556c-b73f-0d5bdd7c13b2"
                                 },
                                 {
-                                    "rel": "collection",
+                                    "rel": "parent",
                                     "type": "application/json",
-                                    "title": "S2",
-                                    "href": "http://127.0.0.1:5252/collections/S2?&lang=en"
+                                    "title": "animal_tracking_datasets",
+                                    "href": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets"
                                 }
                             ],
                             "assets": {
-                                "thumbnail": {
-                                    "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/preview.jpg",
-                                    "type": "image/jpeg"
-                                },
-                                "metadata": {
-                                    "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/metadata.xml",
-                                    "type": "text/xml"
-                                },
-                                "tileInfo": {
-                                    "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/tileInfo.json",
-                                    "type": "application/json"
-                                },
-                                "productInfo": {
-                                    "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/productInfo.json",
-                                    "type": "application/json"
+                                "data": {
+                                    "href": "https://www.lifewatch.be/etn/parquet/detections/RATJADA/RATJADA_detections.parquet",
+                                    "type": "application/x-parquet",
+                                    "title": "RATJADA_detections.parquet",
+                                    "roles": ["data"]
                                 }
-                            }
-                        }
-                    ],
-                    "links": [
-                        {
-                            "rel": "self",
-                            "type": "application/json",
-                            "href": "http://127.0.0.1:5252/stac/search.json?"
+                            },
+                            "stac_version": "1.1.0",
+                            "stac_extensions": [
+                                "https://stac-extensions.github.io/ssys/v1.1.0/schema.json"
+                            ],
+                            "bbox": [-180, -90, 180, 90]
                         },
                         {
-                            "rel": "next",
-                            "type": "application/json",
-                            "href": "http://127.0.0.1:5252/stac/search.json?next=204449069316703379"
+                            "type": "Feature",
+                            "id": "26ec8eb5-c3a0-5482-bdb1-46ba2e0afd90",
+                            "geometry": {
+                                "type": "Polygon",
+                                "coordinates": [
+                                    [
+                                        [180, -90],
+                                        [180, 90],
+                                        [-180, 90],
+                                        [-180, -90],
+                                        [180, -90]
+                                    ]
+                                ]
+                            },
+                            "properties": {
+                                "productIdentifier": "Porbeagles_Europe_detections",
+                                "title": "Porbeagles Europe Detections",
+                                "start_datetime": "2024-09-25T00:00:00.000000Z",
+                                "end_datetime": "2029-12-30T00:00:00.000000Z",
+                                "license": "https://creativecommons.org/licenses/by/4.0/",
+                                "number_of_detections": 14,
+                                "citation": "Vossgaetter et al. 2024. Acoustic Telemetry data for porbeagle sharks across Europe",
+                                "updated": "2025-11-25T10:48:20.627998Z",
+                                "created": "2025-11-25T10:48:20.627998Z",
+                                "likes": 0,
+                                "owner": "226779592474001643",
+                                "status": 1
+                            },
+                            "collection": "animal_tracking_datasets",
+                            "links": [
+                                {
+                                    "rel": "self",
+                                    "type": "application/geo+json",
+                                    "href": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets/items/26ec8eb5-c3a0-5482-bdb1-46ba2e0afd90"
+                                },
+                                {
+                                    "rel": "parent",
+                                    "type": "application/json",
+                                    "title": "animal_tracking_datasets",
+                                    "href": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets"
+                                }
+                            ],
+                            "assets": {
+                                "data": {
+                                    "href": "https://www.lifewatch.be/etn/parquet/detections/Porbeagles_Europe/Porbeagles_Europe_detections.parquet",
+                                    "type": "application/x-parquet",
+                                    "title": "Porbeagles_Europe_detections.parquet",
+                                    "roles": ["data"]
+                                }
+                            },
+                            "stac_version": "1.1.0",
+                            "stac_extensions": [
+                                "https://stac-extensions.github.io/ssys/v1.1.0/schema.json"
+                            ],
+                            "bbox": [-180, -90, 180, 90]
                         }
-                    ],
-                    "context": {
-                        "returned": 20,
-                        "limit": 20,
-                        "matched": 11345,
-                        "exactCount": false,
-                        "startIndex": 1,
-                        "query": {
-                            "inputFilters": []
-                        }
-                    },
-                    "id": "20ac2fc6-daee-5621-bca4-d88c0bb19da1"
+                    ]
                 }
             },
             "InputFeatureCollection": {
@@ -5754,9 +5979,10 @@
                 },
                 "type": "object",
                 "example": {
-                    "id": "year",
+                    "id": "private-user-catalog",
                     "title": "Facet : year",
                     "description": "Catalog of items filtered by year",
+                    "type": "Catalog",
                     "links": [
                         {
                             "rel": "self",
@@ -6051,7 +6277,7 @@
     "tags": [
         {
             "name": "Collection",
-            "description": "A collection is a set of features. This set is usually homogeneous (e.g. *Sentinel-2 images*) but not necessary. A collection is defined by a *model* physically described within a dedicated class under $SRC/include/resto/Models. The purpose of the model class is to convert the input collection feature format (i.e. whatever) to the resto generic format (i.e. GeoJSON) described within the RestoModel class."
+            "description": "A collection is a curated set of related datasets organized by domain or data type. Collections in EDITO include animal tracking datasets (e.g. acoustic telemetry detections of marine species), ocean data (temperature, currents, salinity), climate datasets, and other geospatial resources. Each collection groups features that share similar characteristics, metadata schemas, and scientific context."
         },
         {
             "name": "Feature",
