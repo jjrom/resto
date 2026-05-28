@@ -59,6 +59,7 @@ class RestoRouter
         // Landing page and conformance (see WFS 3.0)                                                                           
         array('GET',    RestoRouter::ROUTE_TO_API, false, 'ServicesAPI::api'),                                                          // API page
         array('GET',    RestoRouter::ROUTE_TO_API . '.html', false, 'ServicesAPI::api'),                                                          // API page
+        array('GET',    RestoRouter::ROUTE_TO_API . '/doc', false, 'ServicesAPI::apiDoc'),                                                        // Swagger UI
         array('GET',    RestoRouter::ROUTE_TO_CONFORMANCE, false, 'ServicesAPI::conformance'),                                          // Conform
         
         // API for users
