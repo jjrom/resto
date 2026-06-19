@@ -647,14 +647,7 @@ class CollectionsAPI
          */
         if (isset($body['properties']['visibility'])) {
             if (empty($body['properties']['visibility'])) {
-                RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group');
-            }
-            $visibility = (new GeneralFunctions($collection->context->dbDriver))->visibilityNamesToIds($body['properties']['visibility']);
-            if (!$this->context->core['anyoneCanSwitchVisibilityToPublic'] && in_array(RestoConstants::GROUP_DEFAULT_ID, $visibility)) {
-                $isAdmin = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID);
-                if (!$isAdmin) {
-                    RestoLogUtil::httpError(403, 'You are not allowed to set the visibility of the default group');
-                }
+                RestoLogUtil::httpError(400, 'Visibility is set but either empty or referencing an unknown group');
             }
         }
 

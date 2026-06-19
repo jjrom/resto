@@ -50,8 +50,8 @@ final class UsersTest extends TestCase
         $decoded = json_decode($response);
         $this->assertSame($decoded->username, $userName, $response);
     }
+    
 
-    #[Group('only')]
     public function testCanGetOtherUserProfile(): void
     {
         $utils = new Utils();
@@ -83,7 +83,8 @@ final class UsersTest extends TestCase
         $decoded = json_decode($response);
         $this->assertSame($decoded->username, $userName, $response);
     }
-
+    
+    #[Group('only')]
     public function testCanGetUserRights(): void
     {
         $utils = new Utils();
@@ -94,6 +95,6 @@ final class UsersTest extends TestCase
         $rights = $utils->rights();
 
         $response = Utils::httpGet("http://" . $userName . ":" . "dummy@localhost:5252/users/" . $userName . "/rights");
-        $this->assertJsonStringEqualsJsonString($response, json_encode(['rights' => $rights]), $response);
+        $this->assertJsonStringEqualsJsonString( json_encode(['rights' => $rights]), $response, $response);
     }
 }
