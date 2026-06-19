@@ -790,6 +790,7 @@ class RestoCollection
      */
     public function toArray()
     {
+        $visibility = (new GeneralFunctions($this->context->dbDriver))->visibilityIdsToNames($this->visibility);
 
         $collectionArray = array(
             'stac_version' => STACAPI::STAC_VERSION,
@@ -798,6 +799,7 @@ class RestoCollection
             'type' => 'Collection',
             'title' => $this->title,
             'description' => $this->description,
+            'visibility' => $visibility,
             'version' => $this->version ?? null,
             'aliases' => $this->aliases ?? array(),
             'license' => $this->license,
@@ -832,8 +834,7 @@ class RestoCollection
             'resto:info' => array(
                 'model' => $this->model->getName(),
                 'lineage' => $this->model->getLineage(),
-                'owner' => $this->owner/*,
-'visibility' => $this->visibility*/
+                'owner' => $this->owner
             )
         );
 

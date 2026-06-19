@@ -7,7 +7,6 @@ use PHPUnit\Framework\Attributes\Group;
 
 final class ItemsTest extends TestCase
 {
-    #[Group('only')]
     public function testCanCreateItem(): void
     {
         $utils = new Utils();
@@ -66,7 +65,6 @@ final class ItemsTest extends TestCase
         $this->assertSame($decoded->links[3]->id, $itemId, $response);
     }
 
-    #[Group('only')]
     public function testCanUpdateItem(): void
     {
         $utils = new Utils();

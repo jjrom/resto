@@ -30,7 +30,6 @@ final class GroupsTest extends TestCase
         $this->assertObjectHasProperty($createGroupItemRight, $decoded->rights, $response);
     }
 
-    #[Group('only')]
     public function testCanPlayWithGroupRightCreate(): void
     {
         $utils = new Utils();

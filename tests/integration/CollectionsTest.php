@@ -31,6 +31,7 @@ final class CollectionsTest extends TestCase
         $this->assertSame($decoded->ErrorMessage, "createCollection - Forbidden", $response);
     }
 
+    #[Group('only')]
     public function testCanUpdateCollection(): void
     {
         $utils = new Utils();
@@ -56,6 +57,8 @@ final class CollectionsTest extends TestCase
         $decoded = json_decode($response);
         $this->assertSame($decoded->description, $collectionNoVisibility['description'], $response);
         $this->assertSame($decoded->title, $collectionNoVisibility['title'], $response);
+        $this->assertSame($decoded->visibility, [$userHasCollectionRight . "_private"], $response);
+
 
         $collectionNoVisibility['description'] = "unauthorized updated description";
         $collectionNoVisibility['title'] = uniqid('unauthorized new title');

@@ -84,7 +84,6 @@ final class UsersTest extends TestCase
         $this->assertSame($decoded->username, $userName, $response);
     }
     
-    #[Group('only')]
     public function testCanGetUserRights(): void
     {
         $utils = new Utils();

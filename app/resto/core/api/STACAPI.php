@@ -1852,6 +1852,7 @@ class STACAPI
                 RestoLogUtil::httpError(403, 'You are not allowed to access this catalog');
             }
         }
+        $visibility = (new GeneralFunctions($this->context->dbDriver))->visibilityIdsToNames($parentAndChilds['parent']['visibility']);
 
         $catalog = array(
             'stac_version' => STACAPI::STAC_VERSION,
@@ -1859,6 +1860,7 @@ class STACAPI
             'title' => $parentAndChilds['parent']['title'] ?? '',
             'description' => $parentAndChilds['parent']['description'] ?? '',
             'type' => ucfirst($parentAndChilds['parent']['rtype'] ?? 'catalog'),
+            'visibility'=> $visibility,
             'links' => array_merge(
                 $this->getBaseLinks($segments),
                 !empty($parentAndChilds['parent']['links']) ? array_merge($parentAndChilds['childs'], $parentAndChilds['parent']['links']) : $parentAndChilds['childs']

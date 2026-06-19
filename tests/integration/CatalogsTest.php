@@ -44,6 +44,7 @@ final class CatalogsTest extends TestCase
         $this->assertSame($catalog_found, null, $response);
     }
 
+    #[Group('only')]
     public function testCanCreateCatalog(): void
     {
         //Create  catalog with group right
@@ -111,6 +112,8 @@ final class CatalogsTest extends TestCase
         $decoded = json_decode($response);
         $this->assertSame($decoded->links[3]->rel, "child", $response);
         $this->assertStringContainsString($childCatalogNoVisibility['id'], $decoded->links[3]->href, $response);
+        $this->assertSame($decoded->visibility, [$userHasCatalogRight . "_private"], $response);
+
     }
 
     public function testCanUpdateCatalog(): void
