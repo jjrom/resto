@@ -830,13 +830,6 @@ class FeaturesAPI
                 if (!(new CatalogsFunctions($this->context->dbDriver))->canSeeCatalog($body[$property], $this->user, true)) {
                     RestoLogUtil::httpError(403, 'You are not allowed to set the visibility to a group you are not part of');
                 }
-
-                if (!$this->context->core['anyoneCanSwitchVisibilityToPublic'] && in_array(RestoConstants::GROUP_DEFAULT_ID, $body['visibility'])) {
-                    $isAdmin = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID);
-                    if (!$isAdmin) {
-                        RestoLogUtil::httpError(403, 'You are not allowed to change the visibility of this feature to default');
-                    }
-                }
             }
         }
 
