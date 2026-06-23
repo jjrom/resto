@@ -1052,6 +1052,7 @@ class CatalogsFunctions
                      * Store local collection within links
                      */
                     if (str_starts_with($link['href'], $context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS)) {
+                        $output['links'][] = $link;
                         continue;
                     }
                 }
