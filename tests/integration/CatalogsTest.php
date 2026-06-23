@@ -226,4 +226,44 @@ final class CatalogsTest extends TestCase
         $decoded = json_decode($response);
         $this->assertSame($decoded->status, "success", $response);
     }
+
+    #[Group('only')]
+    public function testCanAddCollectionToCatalog(): void
+    {
+        $utils = new Utils();
+        $userHasCatalogRight = uniqid("userwithcatalogright");
+        $utils->createAPIUser($userHasCatalogRight);
+        $userWithoutRights = uniqid("userwithoutrights");
+        $utils->createAPIUser($userWithoutRights);
+        $createRight = ["createItem" => true, "createCollection" => true, "createCatalog" => true];
+        $utils->adminAddRightsToUserAPI($userHasCatalogRight, $createRight);
+
+        $collectionName = uniqid("newcollection");
+        $collectionNoVisibility = Utils::collection($collectionName, []);
+        $utils->createCollectionAPI($userHasCatalogRight, $collectionNoVisibility);
+
+        $itemDefaultVisibility = Utils::item(uniqid("newitem"), ['default']);
+
+        $response = Utils::httpPost("http://" . $userHasCatalogRight . ":dummy@localhost:5252/collections/" . $collectionName . "/items", json_encode($itemDefaultVisibility));
+        $decoded = json_decode($response);
+        $this->assertSame($decoded->status, "success", $response);
+
+        //add item to catalog
+        $catalogName = uniqid("newcatalogtoaddcollection");
+        $catalogNoVisibility = Utils::catalog($catalogName, []);
+        $utils->createCatalogAPI($userHasCatalogRight, $catalogNoVisibility);
+
+        $catalogNoVisibility['links'] = [[
+            "rel" => "child",
+            "href" => "http://127.0.0.1:5252/collections/" . $collectionName
+        ]];
+        $response = Utils::httpPut("http://" . $userHasCatalogRight . ":dummy@localhost:5252/catalogs/projects/" . $catalogName, json_encode($catalogNoVisibility));
+        $decoded = json_decode($response);
+        $this->assertSame($decoded->status, "success", $response);
+
+        $response = Utils::httpGet("http://" . $userHasCatalogRight . ":dummy@localhost:5252/catalogs/projects/" . $catalogName);
+        $decoded = json_decode($response);
+        $this->assertSame($decoded->links[3]->rel, "child", $response);
+        $this->assertStringContainsString($collectionName, $decoded->links[3]->href,  $response);
+    }
 }
