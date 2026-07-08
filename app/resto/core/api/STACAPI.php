@@ -52,27 +52,114 @@
  *          description="The STAC version the catalog implements"
  *      ),
  *      example={
- *          "id": "year",
- *          "title": "Facet : year",
- *          "description": "Catalog of items filtered by year",
+ *          "stac_version": "1.1.0",
+ *          "id": "catalogs",
+ *          "type": "Catalog",
+ *          "title": "Catalogs",
+ *          "description": "List of available catalogs",
  *          "links": {
  *              {
  *                  "rel": "self",
  *                  "type": "application/json",
- *                  "href": "http://127.0.0.1:5252/collections/S2.json?&_pretty=1"
+ *                  "href": "https://api.staging.edito.eu/data/catalogs"
  *              },
  *              {
  *                  "rel": "root",
  *                  "type": "application/json",
- *                  "href": "http://127.0.0.1:5252"
+ *                  "href": "https://api.staging.edito.eu/data"
  *              },
  *              {
- *                  "rel": "license",
- *                  "href": "https://scihub.copernicus.eu/twiki/pub/SciHubWebPortal/TermsConditions/Sentinel_Data_Terms_and_Conditions.pdf",
- *                  "title": "Legal notice on the use of Copernicus Sentinel Data and Service Information"
+ *                  "rel": "parent",
+ *                  "type": "application/json",
+ *                  "href": "https://api.staging.edito.eu/data"
+ *              },
+ *              {
+ *                  "id": "projects/copernicus-marine-products",
+ *                  "rel": "child",
+ *                  "type": "application/json",
+ *                  "href": "https://api.staging.edito.eu/data/catalogs/projects%2Fcopernicus-marine-products",
+ *                  "title": "Copernicus Marine Products",
+ *                  "description": "Catalog gathering all the Copernicus Marine Service products and datasets.",
+ *                  "resto:type": "catalog"
+ *              },
+ *              {
+ *                  "id": "projects/emodnet",
+ *                  "rel": "child",
+ *                  "type": "application/json",
+ *                  "href": "https://api.staging.edito.eu/data/catalogs/projects%2Femodnet",
+ *                  "title": "EMODnet",
+ *                  "description": "STAC Catalog for EMODnet"
+ *              },
+ *              {
+ *                  "id": "projects",
+ *                  "rel": "child",
+ *                  "type": "application/json",
+ *                  "href": "https://api.staging.edito.eu/data/catalogs/projects",
+ *                  "title": "Project catalog",
+ *                  "description": "Project catalog"
+ *              },
+ *              {
+ *                  "id": "users",
+ *                  "rel": "child",
+ *                  "type": "application/json",
+ *                  "href": "https://api.staging.edito.eu/data/catalogs/users",
+ *                  "title": "Users catalog",
+ *                  "description": "Catalog for each users"
+ *              },
+ *              {
+ *                  "id": "variable_families",
+ *                  "rel": "child",
+ *                  "type": "application/json",
+ *                  "href": "https://api.staging.edito.eu/data/catalogs/variable_families",
+ *                  "title": "Variable families",
+ *                  "description": "Catalog gathering all variables families",
+ *                  "resto:type": "catalog"
  *              }
  *          },
- *          "stac_version": "1.0.0"
+ *          "@context": "https://schema.org/",
+ *          "@type": "DataCatalog",
+ *          "name": "Catalogs",
+ *          "identifier": "catalogs",
+ *          "isBasedOn": "https://api.staging.edito.eu/data/catalogs",
+ *          "url": "https://radiantearth.github.io/stac-browser/#/external/api.staging.edito.eu/data/catalogs",
+ *          "isPartOf": {
+ *              "@type": "DataCatalog",
+ *              "name": "",
+ *              "isBaseOn": "https://api.staging.edito.eu/data",
+ *              "url": "https://radiantearth.github.io/stac-browser/#/external/api.staging.edito.eu/data"
+ *          },
+ *          "hasPart": {
+ *              {
+ *                  "@type": "DataCatalog",
+ *                  "name": "Copernicus Marine Products",
+ *                  "isBaseOn": "https://api.staging.edito.eu/data/catalogs/projects%2Fcopernicus-marine-products",
+ *                  "url": "https://radiantearth.github.io/stac-browser/#/external/api.staging.edito.eu/data/catalogs/projects%2Fcopernicus-marine-products"
+ *              },
+ *              {
+ *                  "@type": "DataCatalog",
+ *                  "name": "EMODnet",
+ *                  "isBaseOn": "https://api.staging.edito.eu/data/catalogs/projects%2Femodnet",
+ *                  "url": "https://radiantearth.github.io/stac-browser/#/external/api.staging.edito.eu/data/catalogs/projects%2Femodnet"
+ *              },
+ *              {
+ *                  "@type": "DataCatalog",
+ *                  "name": "Project catalog",
+ *                  "isBaseOn": "https://api.staging.edito.eu/data/catalogs/projects",
+ *                  "url": "https://radiantearth.github.io/stac-browser/#/external/api.staging.edito.eu/data/catalogs/projects"
+ *              },
+ *              {
+ *                  "@type": "DataCatalog",
+ *                  "name": "Users catalog",
+ *                  "isBaseOn": "https://api.staging.edito.eu/data/catalogs/users",
+ *                  "url": "https://radiantearth.github.io/stac-browser/#/external/api.staging.edito.eu/data/catalogs/users"
+ *              },
+ *              {
+ *                  "@type": "DataCatalog",
+ *                  "name": "Variable families",
+ *                  "isBaseOn": "https://api.staging.edito.eu/data/catalogs/variable_families",
+ *                  "url": "https://radiantearth.github.io/stac-browser/#/external/api.staging.edito.eu/data/catalogs/variable_families"
+ *              }
+ *          }
  *      }
  *  )
  * 
@@ -259,23 +346,7 @@ class STACAPI
      *      path="/catalogs/*",
      *      summary="Get STAC catalogs",
      *      description="Get STAC catalogs",
-     *      tags={"STAC"},
-     *      @OA\Parameter(
-     *         name="q",
-     *         in="query",
-     *         description="Filter on catalog id and description",
-     *         @OA\Schema(
-     *             type="string"
-     *         )
-     *      ),
-     *      @OA\Parameter(
-     *         name="_countCatalogs",
-     *         in="query",
-     *         description="Set to 1 to not count number of items below catalogs. Speed up *a lot* the query so should be used when using this for suggest (see rocket catalog search for instance)",
-     *         @OA\Schema(
-     *             type="boolean"
-     *         )
-     *      ),
+     *      tags={"Catalog"},
      *      @OA\Response(
      *          response="200",
      *          description="STAC catalog definition - contains links to child catalogs and/or items",
@@ -315,10 +386,10 @@ class STACAPI
      * Add a catalog
      * 
      *    @OA\Post(
-     *      path="/catalogs/*",
+     *      path="/catalogs/projects",
      *      summary="Add a STAC catalog",
      *      description="Add a STAC catalog",
-     *      tags={"STAC"},
+     *      tags={"Catalog"},
      *      @OA\RequestBody(
      *          description="A valid STAC Catalog",
      *          required=true,
@@ -491,7 +562,7 @@ class STACAPI
      *      path="/catalogs/*",
      *      summary="Update catalog",
      *      description="Update catalog",
-     *      tags={"STAC"},
+     *      tags={"Catalog"},
      *      @OA\Parameter(
      *         name="catalogId",
      *         in="path",
@@ -666,7 +737,7 @@ class STACAPI
      *      path="/catalogs/*",
      *      summary="Delete catalog",
      *      description="Delete catalog",
-     *      tags={"STAC"},
+     *      tags={"Catalog"},
      *      @OA\Parameter(
      *         name="catalogId",
      *         in="path",
@@ -767,7 +838,7 @@ class STACAPI
      *      path="/assets/{urlInBase64}",
      *      summary="Download asset",
      *      description="Return the asset href within an HTTP 301 Redirect message. This allows to keep track of download of external assets in resto statistics",
-     *      tags={"STAC"},
+     *      tags={"Catalog"},
      *      @OA\Parameter(
      *         name="urlInBase64",
      *         in="path",
@@ -829,7 +900,7 @@ class STACAPI
      *      path="/children",
      *      summary="Get root child catalogs",
      *      description="List of children of this catalog",
-     *      tags={"STAC"},
+     *      tags={"Catalog"},
      *      @OA\Response(
      *          response="200",
      *          description="List of children of the root catalog",
@@ -890,7 +961,7 @@ class STACAPI
      *      path="/queryables",
      *      summary="Queryables for STAC API",
      *      description="Queryable names for the STAC API Item Search filter.",
-     *      tags={"STAC"},
+     *      tags={"Catalog"},
      *      @OA\Response(
      *          response="200",
      *          description="Queryables for STAC API",
@@ -1229,179 +1300,6 @@ class STACAPI
      *          required=false,
      *          @OA\Schema(
      *              type="string"
-     *          )
-     *      ),
-     *      @OA\Parameter(
-     *          name="productType",
-     *          in="query",
-     *          style="form",
-     *          description="[MODEL][SatelliteModel] A string identifying the entry type (e.g. ER02_SAR_IM__0P, MER_RR__1P, SM_SLC__1S, GES_DISC_AIRH3STD_V005) - OpenSearch {eo:productType}",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *      @OA\Parameter(
-     *          name="processingLevel",
-     *          in="query",
-     *          style="form",
-     *          description="[MODEL][SatelliteModel] A string identifying the processing level applied to the entry - OpenSearch {eo:processingLevel}",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *      @OA\Parameter(
-     *          name="platform",
-     *          in="query",
-     *          style="form",
-     *          description="[MODEL][SatelliteModel] A string with the platform short name (e.g. Sentinel-1) - OpenSearch {eo:platform}",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *      @OA\Parameter(
-     *          name="instrument",
-     *          in="query",
-     *          style="form",
-     *          description="[MODEL][SatelliteModel] A string identifying the instrument (e.g. MERIS, AATSR, ASAR, HRVIR. SAR) - OpenSearch {eo:instrument}",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *      @OA\Parameter(
-     *          name="sensorType",
-     *          in="query",
-     *          style="form",
-     *          description="[MODEL][SatelliteModel] A string identifying the sensor type. Suggested values are: OPTICAL, RADAR, ALTIMETRIC, ATMOSPHERIC, LIMB - OpenSearch {eo:sensorType}",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *      @OA\Parameter(
-     *          name="cloudCover",
-     *          in="query",
-     *          style="form",
-     *          description="[MODEL][OpticalModel] Cloud cover expressed in percent",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *      @OA\Parameter(
-     *          name="snowCover",
-     *          in="query",
-     *          style="form",
-     *          description="[MODEL][OpticalModel] Snow cover expressed in percent",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *      @OA\Parameter(
-     *          name="waterCover",
-     *          in="query",
-     *          style="form",
-     *          description="[MODEL][LandCoverModel] Water area expressed in percent",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *      @OA\Parameter(
-     *          name="urbanCover",
-     *          in="query",
-     *          style="form",
-     *          description="[MODEL][LandCoverModel] Urban area expressed in percent",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *      @OA\Parameter(
-     *          name="iceCover",
-     *          in="query",
-     *          style="form",
-     *          description="[MODEL][LandCoverModel] Ice area expressed in percent",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *      @OA\Parameter(
-     *          name="herbaceousCover",
-     *          in="query",
-     *          style="form",
-     *          description="[MODEL][LandCoverModel] Herbaceous area expressed in percent",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *      @OA\Parameter(
-     *          name="forestCover",
-     *          in="query",
-     *          style="form",
-     *          description="[MODEL][LandCoverModel] Forest area expressed in percent",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *      @OA\Parameter(
-     *          name="floodedCover",
-     *          in="query",
-     *          style="form",
-     *          description="[MODEL][LandCoverModel] Flooded area expressed in percent",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *      @OA\Parameter(
-     *          name="desertCover",
-     *          in="query",
-     *          style="form",
-     *          description="[MODEL][LandCoverModel] Desert area expressed in percent",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *      @OA\Parameter(
-     *          name="cultivatedCover",
-     *          in="query",
-     *          style="form",
-     *          description="[MODEL][LandCoverModel] Cultivated area expressed in percent",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *      @OA\Parameter(
-     *          name="fields",
-     *          in="query",
-     *          style="form",
-     *          description="Comma separated list of property fields to be returned",
-     *          required=false,
-     *          @OA\Items(
-     *              type="string"
-     *          ),
-     *          description="Comma separated list of property fields to be returned. The following reserved keywords can also be used:
-     * _all: Return all properties (This is the default)
-     * _simple: Return all fields except *keywords* property"
-     *      ),
-     *      @OA\Parameter(
-     *          name="_heatmapNoGeo",
-     *          in="query",
-     *          style="form",
-     *          description="[EXTENSION][Heatmap] True to compute search result heatmap without taking account geographical filter",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="boolean"
      *          )
      *      ),
      *      @OA\Response(

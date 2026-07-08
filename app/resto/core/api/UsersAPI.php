@@ -40,42 +40,6 @@ class UsersAPI
      *      summary="Get users",
      *      description="Return the list of user's profiles ordered by descending user identifier. A maximum of 50 profiles are returned per page. The *lt* parameter should be used for pagination",
      *      tags={"User"},
-     *      @OA\Parameter(
-     *         name="lt",
-     *         in="query",
-     *         style="form",
-     *         description="Return user profiles with identifier lower than *lt* - used for pagination",
-     *         @OA\Schema(
-     *             type="integer"
-     *         )
-     *      ),
-     *      @OA\Parameter(
-     *         name="in",
-     *         in="query",
-     *         style="form",
-     *         description="List of comma separated user identifiers",
-     *         @OA\Schema(
-     *             type="string"
-     *         )
-     *      ),
-     *      @OA\Parameter(
-     *         name="groupid",
-     *         in="query",
-     *         style="form",
-     *         description="Return user profiles belonging to group identified by *groupid* ",
-     *         @OA\Schema(
-     *             type="string"
-     *         )
-     *      ),
-     *      @OA\Parameter(
-     *         name="q",
-     *         in="query",
-     *         style="form",
-     *         description="Filter by name, firstname or lastname",
-     *         @OA\Schema(
-     *             type="string"
-     *         )
-     *      ),
      *      @OA\Response(
      *          response="200",
      *          description="List of users profiles",

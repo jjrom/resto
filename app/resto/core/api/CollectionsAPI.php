@@ -68,110 +68,68 @@ class CollectionsAPI
      *                  )
      *              ),
      *              example={
-     *                  "extent": {
-     *                      "spatial": {
-     *                          "bbox": {
-     *                              {
-     *                                  -180,
-     *                                  -77.28054,
-     *                                  180,
-     *                                  82.77201
-     *                              }
-     *                          },
-     *                          "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
-     *                      },
-     *                      "temporal": {
-     *                          "interval": {
-     *                              {
-     *                                  "2018-09-13T05:58:08.367000Z",
-     *                                  "2019-06-11T16:11:41.808000Z"
-     *                              }
-     *                          },
-     *                          "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
-     *                      }
-     *                  },
-     *                  "collections": {
+     *                  "type": "Catalog",
+     *                  "links": {
      *                      {
-     *                          "id": "L8",
-     *                          "title": "Landsat-8",
-     *                          "description": "Landsat represents the world's longest continuously acquired collection of space-based moderate-resolution land remote sensing data. Four decades of imagery provides a unique resource for those who work in agriculture, geology, forestry, regional planning, education, mapping, and global change research. Landsat images are also invaluable for emergency response and disaster relief",
-     *                          "keywords": {
-     *                              "landsat",
-     *                              "level1C",
-     *                              "USGS"
+     *                          "rel": "self",
+     *                          "type": "application/json",
+     *                          "href": "https://api.staging.edito.eu/data/collections"
+     *                      },
+     *                      {
+     *                          "rel": "root",
+     *                          "type": "application/json",
+     *                          "href": "https://api.staging.edito.eu/data"
+     *                      },
+     *                      {
+     *                          "title": "All items",
+     *                          "matched": 147868,
+     *                          "rel": "items",
+     *                          "type": "application/geo+json",
+     *                          "href": "https://api.staging.edito.eu/data/search"
+     *                      },
+     *                      {
+     *                          "title": "Animal Tracking Datasets",
+     *                          "matched": 51,
+     *                          "rel": "child",
+     *                          "type": "application/json",
+     *                          "href": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets",
+     *                          "roles": {
+     *                              "collection"
      *                          },
-     *                          "license": "other",
-     *                          "extent": {
-     *                              "spatial": {
-     *                                  "bbox": {
-     *                                      {
-     *                                          -180,
-     *                                          -77.28054,
-     *                                          180,
-     *                                          82.77201
-     *                                      }
-     *                                  },
-     *                                  "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
-     *                              },
-     *                              "temporal": {
-     *                                  "interval": {
-     *                                      {
-     *                                          "2019-05-19T13:59:47.695508Z",
-     *                                          "2019-06-06T13:28:04.338517Z"
-     *                                      }
-     *                                  },
-     *                                  "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
-     *                              }
+     *                          "description": "A collection of public datasets from the European Tracking Network."
+     *                      },
+     *                      {
+     *                          "title": "Age of sea ice (Climate Forecast convention)",
+     *                          "matched": 45,
+     *                          "rel": "child",
+     *                          "type": "application/json",
+     *                          "href": "https://api.staging.edito.eu/data/collections/climate_forecast-age_of_sea_ice",
+     *                          "roles": {
+     *                              "collection"
      *                          },
-     *                          "links": {
-     *                              {
-     *                                  "rel": "self",
-     *                                  "type": "application/json",
-     *                                  "href": "http://127.0.0.1:5252/collections.json?&_pretty=1"
-     *                              },
-     *                              {
-     *                                  "rel": "root",
-     *                                  "type": "application/json",
-     *                                  "href": "http://127.0.0.1:5252"
-     *                              }
+     *                          "description": "Age of sea ice means the length of time elapsed since the ice formed. Sea ice means all ice floating in the sea which has formed from freezing sea water, rather than by other processes such as calving of land ice to form icebergs."
+     *                      },
+     *                      {
+     *                          "title": "Air pressure at mean sea level (Climate Forecast convention)",
+     *                          "matched": 2938,
+     *                          "rel": "child",
+     *                          "type": "application/json",
+     *                          "href": "https://api.staging.edito.eu/data/collections/climate_forecast-air_pressure_at_mean_sea_level",
+     *                          "roles": {
+     *                              "collection"
      *                          },
-     *                          "resto:info": {
-     *                              "model": "OpticalModel",
-     *                              "lineage": {
-     *                                  "DefaultModel",
-     *                                  "LandCoverModel",
-     *                                  "SatelliteModel",
-     *                                  "OpticalModel"
-     *                              },
-     *                              "owner": "203883411255198721"
+     *                          "description": "Air pressure at sea level is the quantity often abbreviated as MSLP or PMSL. Air pressure is the force per unit area which would be exerted when the moving gas molecules of which the air is composed strike a theoretical surface of any orientation. Mean sea level means the time mean of sea surface elevation at a given location over an arbitrary period sufficient to eliminate the tidal signals."
+     *                      },
+     *                      {
+     *                          "title": "Air temperature (Climate Forecast convention)",
+     *                          "matched": 64,
+     *                          "rel": "child",
+     *                          "type": "application/json",
+     *                          "href": "https://api.staging.edito.eu/data/collections/climate_forecast-air_temperature",
+     *                          "roles": {
+     *                              "collection"
      *                          },
-     *                          "summaries": {
-     *                              "datetime": {
-     *                                  "minimum": "2019-05-19T13:59:47.695508Z",
-     *                                  "maximum": "2019-06-06T13:28:04.338517Z"
-     *                              },
-     *                              "eo:instrument": {
-     *                                  "OLI_TIRS",
-     *                                  "TIRS"
-     *                              },
-     *                              "eo:platform": {
-     *                                  "LANDSAT_8"
-     *                              },
-     *                              "processingLevel": {
-     *                                  "LEVEL1C"
-     *                              },
-     *                              "productType": {
-     *                                  "L1GT",
-     *                                  "L1TP"
-     *                              },
-     *                              "sensorType": {
-     *                                  "OPTICAL"
-     *                              }
-     *                          },
-     *                          "stac_version": "1.0.0",
-     *                          "stac_extensions": {
-     *                              "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
-     *                          }
+     *                          "description": "Air temperature is the bulk temperature of the air, not the surface (skin) temperature."
      *                      }
      *                  }
      *              }
@@ -229,16 +187,6 @@ class CollectionsAPI
      *      path="/collections",
      *      summary="Create collection",
      *      tags={"Collection"},
-     *      @OA\Parameter(
-     *         name="model",
-     *         in="query",
-     *         description="Set the model for the collection (e.g. *OpticalModel*). This superseed the *model* property from the input collection description",
-     *         required=false,
-     *         style="form",
-     *         @OA\Schema(
-     *              type="string"
-     *         )
-     *      ),
      *      @OA\Response(
      *          response="200",
      *          description="The collection is created",
@@ -503,46 +451,6 @@ class CollectionsAPI
      *         description="Collection identifier",
      *         @OA\Schema(
      *             type="string"
-     *         )
-     *      ),
-     *      @OA\Parameter(
-     *         name="tolerance",
-     *         in="query",
-     *         style="form",
-     *         required=false,
-     *         description="Simplify input geometry with tolerance in degrees (use in conjunction with *maxpoints*). [IMPORTANT] Simplification only affects the internal indexed geometry used by the search engine. The original geometry is stored unmodified.",
-     *         @OA\Schema(
-     *             type="number"
-     *         )
-     *      ),
-     *      @OA\Parameter(
-     *         name="maxpoints",
-     *         in="query",
-     *         style="form",
-     *         required=false,
-     *         description="If tolerance is set, geometry simplification of input geometry is performed only if the number of geometry vertices is greater than *maxpoints*",
-     *         @OA\Schema(
-     *             type="integer"
-     *         )
-     *      ),
-     *      @OA\Parameter(
-     *         name="_splitGeom",
-     *         in="query",
-     *         style="form",
-     *         required=false,
-     *         description="Superseed the SPLIT_GEOMETRY_ON_DATELINE configuration i.e. set to true to split geometry during feature insertion - false otherwise. Default is set to SPLIT_GEOMETRY_ON_DATELINE",
-     *         @OA\Schema(
-     *             type="boolean"
-     *         )
-     *      ),
-     *      @OA\Parameter(
-     *         name="_useItag",
-     *         in="query",
-     *         style="form",
-     *         required=false,
-     *         description="[ADDON][Tag] Set to false to not use iTag during feature insertion. Default is true",
-     *         @OA\Schema(
-     *             type="boolean"
      *         )
      *      ),
      *      @OA\RequestBody(

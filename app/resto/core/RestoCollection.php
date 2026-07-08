@@ -20,7 +20,7 @@
  *
  *  @OA\Tag(
  *      name="Collection",
- *      description="A collection is a set of features. This set is usually homogeneous (e.g. *Sentinel-2 images*) but not necessary. A collection is defined by a *model* physically described within a dedicated class under $SRC/include/resto/Models. The purpose of the model class is to convert the input collection feature format (i.e. whatever) to the resto generic format (i.e. GeoJSON) described within the RestoModel class."
+ *      description="A collection is a curated set of related datasets organized by domain or data type. Collections include animal tracking datasets (e.g. acoustic telemetry detections of marine species), ocean data (temperature, currents, salinity), climate datasets, and other geospatial resources. Each collection groups features that share similar characteristics, metadata schemas, and scientific context."
  *  )
  *
  *  @OA\Schema(
@@ -103,106 +103,37 @@
  *          @OA\JsonContent()
  *      ),
  *      example={
- *          "id": "S2",
+ *          "id": "ocean_temperature_products",
  *          "type": "Collection",
- *          "title": "Level 1C Sentinel-2 images",
- *          "description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
- *          "version": "1.0",
- *          "model": "OpticalModel",
- *          "visibility": {"default"},
- *          "license": "other",
+ *          "title": "Copernicus Ocean Temperature Products",
+ *          "description": "Sea surface temperature (SST) datasets from Copernicus Marine Service providing operational oceanographic data.",
+ *          "version": "2.0",
+ *          "model": "DTOModel",
+ *          "visibility": {"group_name"},
+ *          "license": "CC-BY-4.0",
  *          "providers": {
  *              {
- *                  "name": "European Union/ESA/Copernicus",
+ *                  "name": "European Union/Copernicus Marine Service",
  *                  "roles": {
  *                      "producer",
  *                      "licensor"
  *                  },
- *                  "url": "https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi"
+ *                  "url": "https://marine.copernicus.eu/"
  *              }
  *          },
  *          "links": {
  *              {
  *                  "rel": "license",
- *                  "href": "https://scihub.copernicus.eu/twiki/pub/SciHubWebPortal/TermsConditions/Sentinel_Data_Terms_and_Conditions.pdf",
- *                  "title": "Legal notice on the use of Copernicus Sentinel Data and Service Information"
+ *                  "href": "https://marine.copernicus.eu/about/copernicus-marine-data-terms-conditions/",
+ *                  "title": "Copernicus Marine Data Terms and Conditions"
  *              }
  *          },
- *          "summaries": {
- *              "bands": {
- *                  {
- *                      "name": "B1",
- *                      "common_name": "coastal",
- *                      "center_wavelength": 4.439,
- *                      "gsd": 60
- *                  },
- *                  {
- *                      "name": "B2",
- *                      "common_name": "blue",
- *                      "center_wavelength": 4.966,
- *                      "gsd": 10
- *                  },
- *                  {
- *                      "name": "B3",
- *                      "common_name": "green",
- *                      "center_wavelength": 5.6,
- *                      "gsd": 10
- *                  },
- *                  {
- *                      "name": "B4",
- *                      "common_name": "red",
- *                      "center_wavelength": 6.645,
- *                      "gsd": 10
- *                  },
- *                  {
- *                      "name": "B5",
- *                      "center_wavelength": 7.039,
- *                      "gsd": 20
- *                  },
- *                  {
- *                      "name": "B6",
- *                      "center_wavelength": 7.402,
- *                      "gsd": 20
- *                  },
- *                  {
- *                      "name": "B7",
- *                      "center_wavelength": 7.825,
- *                      "gsd": 20
- *                  },
- *                  {
- *                      "name": "B8",
- *                      "common_name": "nir",
- *                      "center_wavelength": 8.351,
- *                      "gsd": 10
- *                  },
- *                  {
- *                      "name": "B8A",
- *                      "center_wavelength": 8.648,
- *                      "gsd": 20
- *                  },
- *                  {
- *                      "name": "B9",
- *                      "center_wavelength": 9.45,
- *                      "gsd": 60
- *                  },
- *                  {
- *                      "name": "B10",
- *                      "center_wavelength": 1.3735,
- *                      "gsd": 60
- *                  },
- *                  {
- *                      "name": "B11",
- *                      "common_name": "swir16",
- *                      "center_wavelength": 1.6137,
- *                      "gsd": 20
- *                  },
- *                  {
- *                      "name": "B12",
- *                      "common_name": "swir22",
- *                      "center_wavelength": 2.2024,
- *                      "gsd": 20
- *                  }
- *              }
+ *          "keywords": {
+ *              "ocean",
+ *              "temperature",
+ *              "sst",
+ *              "copernicus",
+ *              "marine"
  *          }
  *      }
  *  )
@@ -330,27 +261,23 @@
  *          )
  *      ),
  *      example={
- *          "id": "S2",
- *          "title": "Sentinel-2",
- *          "description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
- *          "keywords": {
- *              "copernicus",
- *              "esa",
- *              "eu",
- *              "msi",
- *              "radiance",
- *              "sentinel",
- *              "sentinel2"
- *          },
- *          "license": "other",
+ *          "stac_version": "1.1.0",
+ *          "stac_extensions": {},
+ *          "id": "animal_tracking_datasets",
+ *          "type": "Collection",
+ *          "title": "Animal Tracking Datasets",
+ *          "description": "A collection of public datasets from the European Tracking Network.",
+ *          "version": "1.0.0",
+ *          "aliases": {},
+ *          "license": "CCBYNC",
  *          "extent": {
  *              "spatial": {
  *                  "bbox": {
  *                      {
- *                          -48.6198530870596,
- *                          74.6749788966259,
- *                          -44.6464244356188,
- *                          75.6843970710939
+ *                          -180,
+ *                          -90,
+ *                          180,
+ *                          90
  *                      }
  *                  },
  *                  "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
@@ -358,8 +285,8 @@
  *              "temporal": {
  *                  "interval": {
  *                      {
- *                          "2019-06-11T16:11:41.808000Z",
- *                          "2019-06-11T16:11:41.808000Z"
+ *                          "1970-01-01T00:00:00.000000Z",
+ *                          "2025-01-01T00:00:00.000000Z"
  *                      }
  *                  },
  *                  "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
@@ -369,135 +296,63 @@
  *              {
  *                  "rel": "self",
  *                  "type": "application/json",
- *                  "href": "http://127.0.0.1:5252/collections/S2.json?&_pretty=1"
+ *                  "href": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets"
  *              },
  *              {
  *                  "rel": "root",
  *                  "type": "application/json",
- *                  "href": "http://127.0.0.1:5252"
+ *                  "href": "https://api.staging.edito.eu/data"
  *              },
  *              {
- *                  "rel": "license",
- *                  "href": "https://scihub.copernicus.eu/twiki/pub/SciHubWebPortal/TermsConditions/Sentinel_Data_Terms_and_Conditions.pdf",
- *                  "title": "Legal notice on the use of Copernicus Sentinel Data and Service Information"
+ *                  "rel": "items",
+ *                  "title": "All items",
+ *                  "type": "application/geo+json",
+ *                  "href": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets/items"
+ *              },
+ *              {
+ *                  "rel": "http://www.opengis.net/def/rel/ogc/1.0/queryables",
+ *                  "type": "application/schema+json",
+ *                  "title": "Queryables",
+ *                  "href": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets/queryables"
  *              }
  *          },
  *          "resto:info": {
- *              "model": "OpticalModel",
+ *              "model": "DTOModel",
  *              "lineage": {
  *                  "DefaultModel",
- *                  "LandCoverModel",
- *                  "SatelliteModel",
- *                  "OpticalModel"
+ *                  "DTOModel"
  *              },
- *              "owner": "203883411255198721"
+ *              "owner": "226779592474001643"
  *          },
- *          "providers": {
- *              {
- *                  "name": "European Union/ESA/Copernicus",
- *                  "roles": {
- *                      "producer",
- *                      "licensor"
- *                  },
- *                  "url": "https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi"
- *              }
- *          },
+ *          "keywords": {},
+ *          "providers": {},
+ *          "assets": {},
  *          "summaries": {
  *              "datetime": {
- *                  "minimum": "2019-06-11T16:11:41.808000Z",
- *                  "maximum": "2019-06-11T16:11:41.808000Z"
+ *                  "minimum": "1970-01-01T00:00:00.000000Z",
+ *                  "maximum": "2025-01-01T00:00:00.000000Z"
  *              },
- *              "eo:instrument": {
- *                  "MSI"
- *              },
- *              "eo:platform": {
- *                  "S2A"
- *              },
- *              "processingLevel": {
- *                  "LEVEL1C"
- *              },
- *              "productType": {
- *                  "REFLECTANCE"
- *              },
- *              "bands": {
- *                  {
- *                      "name": "B1",
- *                      "common_name": "coastal",
- *                      "center_wavelength": 4.439,
- *                      "gsd": 60
- *                  },
- *                  {
- *                      "name": "B2",
- *                      "common_name": "blue",
- *                      "center_wavelength": 4.966,
- *                      "gsd": 10
- *                  },
- *                  {
- *                      "name": "B3",
- *                      "common_name": "green",
- *                      "center_wavelength": 5.6,
- *                      "gsd": 10
- *                  },
- *                  {
- *                      "name": "B4",
- *                      "common_name": "red",
- *                      "center_wavelength": 6.645,
- *                      "gsd": 10
- *                  },
- *                  {
- *                      "name": "B5",
- *                      "center_wavelength": 7.039,
- *                      "gsd": 20
- *                  },
- *                  {
- *                      "name": "B6",
- *                      "center_wavelength": 7.402,
- *                      "gsd": 20
- *                  },
- *                  {
- *                      "name": "B7",
- *                      "center_wavelength": 7.825,
- *                      "gsd": 20
- *                  },
- *                  {
- *                      "name": "B8",
- *                      "common_name": "nir",
- *                      "center_wavelength": 8.351,
- *                      "gsd": 10
- *                  },
- *                  {
- *                      "name": "B8A",
- *                      "center_wavelength": 8.648,
- *                      "gsd": 20
- *                  },
- *                  {
- *                      "name": "B9",
- *                      "center_wavelength": 9.45,
- *                      "gsd": 60
- *                  },
- *                  {
- *                      "name": "B10",
- *                      "center_wavelength": 1.3735,
- *                      "gsd": 60
- *                  },
- *                  {
- *                      "name": "B11",
- *                      "common_name": "swir16",
- *                      "center_wavelength": 1.6137,
- *                      "gsd": 20
- *                  },
- *                  {
- *                      "name": "B12",
- *                      "common_name": "swir22",
- *                      "center_wavelength": 2.2024,
- *                      "gsd": 20
- *                  }
+ *              "collection": {
+ *                  "const": "animal_tracking_datasets",
+ *                  "count": 51,
+ *                  "type": "string"
  *              }
  *          },
- *          "stac_version": "1.0.0",
- *          "stac_extensions": {
- *              "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
- *          }
+ *          "@context": "https://schema.org/",
+ *          "@type": "DataCatalog",
+ *          "name": "Animal Tracking Datasets",
+ *          "identifier": "animal_tracking_datasets",
+ *          "isBasedOn": "https://api.staging.edito.eu/data/collections/animal_tracking_datasets",
+ *          "url": "https://radiantearth.github.io/stac-browser/#/external/api.staging.edito.eu/data/collections/animal_tracking_datasets",
+ *          "spatialCoverage": {
+ *              "@type": "Place",
+ *              "geo": {
+ *                  "@type": "GeoShape",
+ *                  "box": "-180 -90 180 90"
+ *              }
+ *          },
+ *          "temporalCoverage": "1970-01-01T00:00:00.000000Z/2025-01-01T00:00:00.000000Z",
+ *          "isPartOf": {}
  *      }
  *  )
  */
