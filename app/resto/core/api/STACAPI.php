@@ -349,7 +349,7 @@ class STACAPI
      * Return a STAC catalog
      *
      *    @OA\Get(
-     *      path="/catalogs/*",
+     *      path="/catalogs",
      *      summary="Get STAC catalogs",
      *      description="Get STAC catalogs",
      *      tags={"Catalog"},
@@ -366,6 +366,39 @@ class STACAPI
      *      )
      *    )
      */
+    
+       /**
+     * Return a STAC catalog by path
+     *
+     *    @OA\Get(
+     *      path="/catalogs/{catalogPath}",
+     *      summary="Get catalogs by path",
+     *      description="Get catalogs by hierarchical path. For example: users, users/username, projects/copernicus-marine-products, projects/emodnet",
+     *      tags={"Catalog"},
+     *      OA\Parameter(
+     *        name='catalogPath',
+     *        in='path',
+     *        required=true,
+     *        description='Path to the catalog',
+     *        OA\Schema(
+     *          type='string'
+     *        ),
+     *        example='projects/foo/bar'
+     *      ),
+     *      @OA\Response(
+     *          response="200",
+     *          description="STAC catalog definition - contains links to child catalogs and/or items",
+     *          @OA\JsonContent(
+     *              ref="#/components/schemas/Catalog"
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response="404",
+     *          description="Not found"
+     *      )
+     *    )
+     */
+    
     public function getCatalogs($params)
     {
         // This is /catalogs
@@ -565,7 +598,7 @@ class STACAPI
      * Update catalog
      * 
      *    @OA\Put(
-     *      path="/catalogs/*",
+     *      path="/catalogs/{catalogId}",
      *      summary="Update catalog",
      *      description="Update catalog",
      *      tags={"Catalog"},
@@ -573,7 +606,8 @@ class STACAPI
      *         name="catalogId",
      *         in="path",
      *         required=true,
-     *         description="Catalog identifier",
+     *         description="Catalog identifier or path unless it's a collection, in this case there is the /collections/collectionId endpoint",
+     *         example="projects/emodnet/emodnet2",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -740,7 +774,7 @@ class STACAPI
      * Delete catalog
      * 
      *    @OA\Delete(
-     *      path="/catalogs/*",
+     *      path="/catalogs/catalogId",
      *      summary="Delete catalog",
      *      description="Delete catalog",
      *      tags={"Catalog"},
@@ -748,7 +782,7 @@ class STACAPI
      *         name="catalogId",
      *         in="path",
      *         required=true,
-     *         description="Catalog identifier",
+     *         description="Catalog identifier or path to the catalog",
      *         @OA\Schema(
      *             type="string"
      *         )
