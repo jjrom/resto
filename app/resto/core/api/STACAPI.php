@@ -774,7 +774,7 @@ class STACAPI
      * Delete catalog
      * 
      *    @OA\Delete(
-     *      path="/catalogs/catalogId",
+     *      path="/catalogs/{catalogId}",
      *      summary="Delete catalog",
      *      description="Delete catalog",
      *      tags={"Catalog"},
