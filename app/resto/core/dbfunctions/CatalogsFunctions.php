@@ -1144,4 +1144,31 @@ class CatalogsFunctions
 
         return $parentCatalog;
     }
+    /**
+     * Create group's project catalog
+     * 
+     * @param array $profile
+     * @param string $groupName
+     * @param string $groupId
+     */
+    public function createGroupProjectCatalogIfNotExists($profile, $groupName, $groupId): void {
+        $projectName = 'projects/' .$groupName;
+        $catalogs = $this->getCatalogs(array(
+            'id' => $projectName
+        ), false);
+        if (!isset($catalogs) || count($catalogs) == 0) {
+            $this->dbDriver->query_params('INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog (id, title, description, level, counters, owner, visibility, created) VALUES ($1,$2,$3,$4,$5,$6,$7,now_utc()) ON CONFLICT (id) DO NOTHING', array(
+                $projectName,
+                $groupName,
+                'This is ' . $groupName . ' project catalog',
+                2,
+                str_replace('[]', '{}', json_encode(array(
+                    'total' => 0,
+                    'collections' => array()
+                ), JSON_UNESCAPED_SLASHES)),
+                $profile['id'],
+                '{' . $groupId . '}'
+            ));   
+        }
+    }
 }

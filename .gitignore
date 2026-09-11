@@ -17,3 +17,5 @@ tests/vendor
 .php-cs-fixer.dist.php
 .vscode
 .phpunit.result.cache
+# PHP CS Fixer configuration
+/.php-cs-fixer.php

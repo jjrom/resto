@@ -604,6 +604,7 @@ class Auth extends RestoAddOn
         }
 
         $groupsFunctions = new GroupsFunctions($this->context->dbDriver);
+        $catalogFunctions = new CatalogsFunctions($this->context->dbDriver);
         $userGroups = $groupsFunctions->getGroups(array('userid' => $user->profile['id']));
         $userGroupNames = array_map(function ($g) { return $g['name']; }, $userGroups);
 
@@ -629,6 +630,7 @@ class Auth extends RestoAddOn
                 if (isset($group['id'])) {
                     $groupsFunctions->addUserToGroup(array('id' => $group['id']), $user->profile['id'], true);
                 }
+                $catalogFunctions->createGroupProjectCatalogIfNotExists($user->profile, $groupName, $group['id']);
             }
         }
 
