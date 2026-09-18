@@ -507,7 +507,13 @@ class STACAPI
         /*
          * First check that user has the right to create a catalog
          */
-        if (!$this->user->hasRightsTo(RestoUser::CREATE_CATALOG, array('catalog' => $body, 'parentOwnerId' => $parentOwnerId))) {
+        $canCreateInProject = false;
+        $exploded = explode('/', $parentId);
+        if ($exploded[0] === "projects"){
+            $canCreateInProject = $this->user->hasRightsTo(RestoGroup::createCatalogRight($exploded[1]));
+        }
+
+        if (!$canCreateInProject && !$this->user->hasRightsTo(RestoUser::CREATE_CATALOG, array('catalog' => $body, 'parentOwnerId' => $parentOwnerId))) {
             if (empty($body['visibility'])) {
                 RestoLogUtil::httpError(403, "No visibility set for catalog and you don't have global right to create catalog");
             }

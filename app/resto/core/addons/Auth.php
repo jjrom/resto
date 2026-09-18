@@ -604,6 +604,7 @@ class Auth extends RestoAddOn
         }
 
         $groupsFunctions = new GroupsFunctions($this->context->dbDriver);
+        $rightsFunctions = new RightsFunctions($this->context->dbDriver);
         $catalogFunctions = new CatalogsFunctions($this->context->dbDriver);
         $userGroups = $groupsFunctions->getGroups(array('userid' => $user->profile['id']));
         $userGroupNames = array_map(function ($g) { return $g['name']; }, $userGroups);
@@ -629,8 +630,14 @@ class Auth extends RestoAddOn
                 $group = $groupsFunctions->getGroup($groupName);
                 if (isset($group['id'])) {
                     $groupsFunctions->addUserToGroup(array('id' => $group['id']), $user->profile['id'], true);
+                    $rights = [
+                      RestoGroup::createItemRight($groupName) => true,
+                      RestoGroup::createCatalogRight($groupName) => true,
+                      RestoGroup::createCollectionRight($groupName) => true,
+                    ];
+                    $rightsFunctions->storeOrUpdateRights('groupId', $group['id'], $rights);
+                    $catalogFunctions->createGroupProjectCatalogIfNotExists($user->profile, $groupName, $group['id']);
                 }
-                $catalogFunctions->createGroupProjectCatalogIfNotExists($user->profile, $groupName, $group['id']);
             }
         }
 
