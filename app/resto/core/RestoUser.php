@@ -655,6 +655,8 @@ class RestoUser
                     return $rights['catalogs'][$key][RestoUser::CREATE_CATALOG] ?? false;
                 }
             }
+        } else if (isset($params['parentOwnerId'])) {
+            return $params['parentOwnerId'] === $this->profile['id'];
         }
         
         return false;

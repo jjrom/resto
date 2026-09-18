@@ -483,10 +483,12 @@ class STACAPI
          * Check that parent catalogs exists
          */
         $parentId = null;
+        $parentOwnerId = null;
         if (isset($params['segments'])) {
             for ($i = 0, $ii = count($params['segments']); $i < $ii; $i++) {
                 $parentId = isset($parentId) ? $parentId . '/' . $params['segments'][$i] : $params['segments'][$i];
                 $parentCatalog = $this->catalogsFunctions->getCatalog($parentId, $this->user);
+                $parentOwnerId = $parentCatalog['owner'];
                 if ($parentCatalog === null) {
                     RestoLogUtil::httpError(400, 'Parent catalog ' . $parentId . ' does not exist.');
                 }
@@ -505,7 +507,7 @@ class STACAPI
         /*
          * First check that user has the right to create a catalog
          */
-        if (!$this->user->hasRightsTo(RestoUser::CREATE_CATALOG, array('catalog' => $body))) {
+        if (!$this->user->hasRightsTo(RestoUser::CREATE_CATALOG, array('catalog' => $body, 'parentOwnerId' => $parentOwnerId))) {
             if (empty($body['visibility'])) {
                 RestoLogUtil::httpError(403, "No visibility set for catalog and you don't have global right to create catalog");
             }
