@@ -679,6 +679,14 @@ class CatalogsFunctions
                 $createdCatalogIsPublic = false;
             }
             $catalog['visibility'] = RestoUtil::getDefaultVisibility($user, $createdCatalogIsPublic);
+            if (isset($catalog['id'])) {
+                $catalogs = explode("/", $catalog['id']);
+                if ($catalogs[0] === "projects") {
+                    $groupFunctions = new GroupsFunctions($this->dbDriver);
+                    $projectGroup = $groupFunctions->getGroup($catalogs[1]);
+                    $catalog['visibility'] =array($projectGroup['id']);
+                }
+            }
         }
         $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, stac_url, pinned, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,now()';
         $values = array(
