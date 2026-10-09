@@ -1045,10 +1045,13 @@ class CatalogsFunctions
                      * Avoid cycling (i.e. catalog self referencing one of its parent)
                      */
                     if (str_starts_with($link['href'], $context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS)) {
-                        $childExploded = explode('/', substr($link['href'], strlen($context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS) + 1));
+                        $childId = substr($link['href'], strlen($context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS) + 1);
+                        $childExploded = explode('/', $childId);
                         $selfExploded = explode('/', $catalog['id']);
                         if ($childExploded[count($childExploded) - 2] != $selfExploded[count($selfExploded) - 1]) {
                             RestoLogUtil::httpError(400, 'Catalog child ' . $link['href'] . ' is invalid because it tries to reference a catalog that is not its child');
+                        } else {
+                          $output['childIds'][] = $childId;
                         }
                     }
 
