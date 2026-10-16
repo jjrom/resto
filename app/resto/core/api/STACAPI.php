@@ -591,12 +591,20 @@ class STACAPI
          */
         if ($body['type'] === 'Collection') {
             $newId =  $body['id'];
-            $newVisibility =    $body['visibility'];
+            $newVisibility = $body['visibility'];
             $body['id'] = $oldBodyId;
             $body['visibility'] = $oldBodyVisibility;
+            $collection = (new CollectionsFunctions($this->context->dbDriver))->getCollection($body['id'], $this->user);
             // Collection does not exist - created first
-            if (!(new CollectionsFunctions($this->context->dbDriver))->collectionExists($body['id'])) {
+            if (!isset($collection)) {
                 $this->context->keeper->getRestoCollections($this->user)->create($body, $params['model'] ?? null);
+            } else {
+                
+            if (isset($body['visibility'])) {
+                RestoLogUtil::httpError(403, 'Collection ' . $body['id'] . ' already exists, forbidden to set its visibility in catalogs. Please use /collections endpoint to update visibility of an existing collection');
+            } else {
+                $newVisibility = $collection["visibility"];
+            }
             }
             $body['id'] = $newId;
             $body['visibility'] = $newVisibility;

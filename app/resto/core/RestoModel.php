@@ -687,7 +687,7 @@ abstract class RestoModel
         $properties = array();
 
         /*
-         * Initialiaze stac_extensions array
+         * Initialize stac_extensions array
          */
         $stac_extensions = $featureArray['stac_extensions'] ?? [];
 
@@ -701,11 +701,7 @@ abstract class RestoModel
             if (isset($this->stacMapping[$key])) {
                 $properties[$this->stacMapping[$key]['key']] = $this->convertTo($featureArray['properties'][$key], $this->stacMapping[$key]['convertTo'] ?? null);
             } else {
-                if ($key == 'visibility') {
-                    $properties[$key] = (new GeneralFunctions($dbDriver))->visibilityIdsToNames($featureArray['properties'][$key]);
-                } else {
-                    $properties[$key] = $featureArray['properties'][$key];
-                }
+                $properties[$key] = $featureArray['properties'][$key];
             }
 
             // [STAC] Detect extensions in properties
@@ -959,23 +955,6 @@ abstract class RestoModel
          * Clean properties
          */
         $properties = RestoUtil::cleanAssociativeArray($data['properties']);
-
-        /*
-         * Convert visibility from names to ids
-         */
-        if (isset($properties['visibility'])) {
-            $properties['visibility'] = (new GeneralFunctions($collection->context->dbDriver))->visibilityNamesToIds($properties['visibility']);
-            if (empty($properties['visibility'])) {
-                RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group');
-            }
-
-            /*
-             * Check visibility
-             */
-            if (!(new CatalogsFunctions($collection->context->dbDriver))->canSeeCatalog($properties['visibility'], $collection->user, true)) {
-                RestoLogUtil::httpError(403, 'You are not allowed to set the visibility to a group you are not part of');
-            }
-        }
 
         /*
          * Convert datetime to startDate / completionDate

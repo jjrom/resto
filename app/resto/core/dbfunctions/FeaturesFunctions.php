@@ -30,7 +30,6 @@ class FeaturesFunctions
         'id',
         'collection',
         'productIdentifier',
-        'visibility',
         'title',
         'description',
         'startDate',
@@ -310,21 +309,12 @@ class FeaturesFunctions
      */
     public function storeFeature($id, $collection, $featureArray)
     {
-        // Default visibility
-        if ( !isset($featureArray['properties']['visibility']) ) {
-            $createdItemIsPublic=false;
-            if ($collection->context->core['anyoneCanSwitchVisibilityToPublic']) {
-                $createdItemIsPublic = isset($collection->user->profile['settings']['createdItemIsPublic']) ? $collection->user->profile['settings']['createdItemIsPublic'] : true;
-            }
-            $featureArray['properties']['visibility'] = RestoUtil::getDefaultVisibility($collection->user, $createdItemIsPublic);
-        }
         $keysAndValues = $this->featureArrayToKeysValues(
             $collection,
             $featureArray,
             array(
                 'id' => $id,
                 'collection' => $collection->id,
-                'visibility' => '{' . join(',', $featureArray['properties']['visibility']) . '}',
                 'owner' => isset($collection) && isset($collection->user) ? $collection->user->profile['id'] : null,
                 'status' => isset($featureArray['properties']) && isset($featureArray['properties']['status']) && is_int($featureArray['properties']['status']) ? $featureArray['properties']['status'] : 1,
                 'likes' => 0,
@@ -597,11 +587,6 @@ class FeaturesFunctions
                     if (! ctype_digit($value . '')) {
                         RestoLogUtil::httpError(400, 'Invalid ' . $property . ' type - should be numeric');
                     }
-                }
-
-                // Visibility
-                if ($property === 'visibility') {
-                    $value = QueryUtil::visibilityToSQL($value);
                 }
 
                 $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.feature SET ' . $property . '=$1 WHERE id=$2', array(

@@ -219,17 +219,13 @@ final class Utils extends Assert
 
     /**
      * @return array<string,string>
-     * @param array<string> $visibility
      */
-    public static function item(string $itemName, array $visibility): array
+    public static function item(string $itemName): array
     {
         $value = [
             "datetime" => "2024-06-21T16:27:00Z",
             "description" => "This is test item",
         ];
-        if ($visibility) {
-            $value['visibility'] = $visibility;
-        }
 
         return [
             "id" => $itemName,
