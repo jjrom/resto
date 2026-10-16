@@ -171,28 +171,10 @@ final class GroupsTest extends TestCase
         $this->assertSame($decoded->ErrorCode, 403, $response);
 
         //Update item
-
-        $privateItem = Utils::item(uniqid("item1"), []);
-        $utils->createItemAPI($groupOwnerUserName, $collectionName, $privateItem);
-
-        $privateItem['description'] = "updated item description";
-
-        // User in group cannot private update
-        $response = Utils::httpPut("http://" . $inGroupUserName . ":dummy@localhost:5252/collections/" . $collectionName . "/items/" . $privateItem['id'], json_encode($privateItem));
-        $decoded = json_decode($response);
-        $this->assertSame($decoded->ErrorCode, 404, $response);
-
-        $inGroupItem = Utils::item(uniqid("ingroupitem1"), [$groupName]);
+        $inGroupItem = Utils::item(uniqid("ingroupitem1"));
         $utils->createItemAPI($groupOwnerUserName, $collectionName, $inGroupItem);
+
         $inGroupItem['description'] = "in group updated item description";
-
-        // User in group cannot update visibility
-        $response = Utils::httpPut("http://" . $inGroupUserName . ":dummy@localhost:5252/collections/" . $collectionName . "/items/" . $inGroupItem['id'], json_encode($inGroupItem));
-        $decoded = json_decode($response);
-        $this->assertSame($decoded->ErrorCode, 403, $response);
-
-        unset($inGroupItem['properties']["visibility"]);
-
         // User in group with update right can update item
         $response = Utils::httpPut("http://" . $inGroupUserName . ":dummy@localhost:5252/collections/" . $collectionName . "/items/" . $inGroupItem['id'], json_encode($inGroupItem));
         $decoded = json_decode($response);
@@ -202,16 +184,6 @@ final class GroupsTest extends TestCase
         $response = Utils::httpPut("http://" . $inSecondGroupUserName . ":dummy@localhost:5252/collections/" . $collectionName . "/items/" . $inGroupItem['id'], json_encode($inGroupItem));
         $decoded = json_decode($response);
         $this->assertSame($decoded->ErrorCode, 404, $response);
-
-        // group owner with update right can update item visibility
-        $inGroupItem['properties']['visibility'] = [$groupName];
-        $response = Utils::httpPut("http://" . $groupOwnerUserName . ":dummy@localhost:5252/collections/" . $collectionName . "/items/" . $inGroupItem['id'], json_encode($inGroupItem));
-        $decoded = json_decode($response);
-        $this->assertSame($decoded->status, "success", $response);
-
-        $response = Utils::httpGet("http://" . $groupOwnerUserName . ":" . "dummy@localhost:5252/collections/" . $collectionName . "/items/" . $inGroupItem['id']);
-        $decoded = json_decode($response);
-        $this->assertSame($decoded->properties->visibility, $inGroupItem['properties']['visibility'], $response);
     }
 
     public function testCanPlayWithGroupRightDelete(): void

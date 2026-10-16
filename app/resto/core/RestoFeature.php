@@ -401,11 +401,6 @@ class RestoFeature
     private $featureArray;
 
 
-    /*
-    * Feature visibility
-    */
-    public $visibility;
-
     /**
      * Constructor
      *
@@ -523,6 +518,5 @@ class RestoFeature
         }
         
         $this->id = $this->featureArray['id'];
-        $this->visibility = $this->featureArray['properties']['visibility'];
     }
 }

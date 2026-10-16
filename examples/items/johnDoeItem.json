@@ -3,10 +3,7 @@
     "type": "Feature",
     "properties": {
         "datetime": "2024-06-21T16:27:00Z",
-        "description": "This is an item belonging to JohnDoeCollection",
-        "visibility": [
-            "default"
-        ]
+        "description": "This is an item belonging to JohnDoeCollection"
     },
     "geometry": {
         "coordinates": [

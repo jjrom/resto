@@ -550,14 +550,6 @@ class CollectionsAPI
                 RestoLogUtil::httpError(403);
             }
         }
-        /*
-         * Convert visibility from names to ids
-         */
-        if (isset($body['properties']['visibility'])) {
-            if (empty($body['properties']['visibility'])) {
-                RestoLogUtil::httpError(400, 'Visibility is set but either empty or referencing an unknown group');
-            }
-        }
 
         /*
          * Insert feature(s) within database

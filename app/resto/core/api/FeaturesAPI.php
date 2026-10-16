@@ -169,8 +169,8 @@ class FeaturesAPI
         if ($this->context->outputFormat === 'json') {
             $this->context->outputFormat = 'geojson';
         }
-
-        return $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load()->search($params);
+        $loaded = $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load();
+        return $loaded->search($params);
     }
 
     /**
@@ -270,13 +270,8 @@ class FeaturesAPI
             $params['_splitGeom'] = isset($params['_splitGeom']) && filter_var($params['_splitGeom'], FILTER_VALIDATE_BOOLEAN) === false ? false : $this->context->core["splitGeometryOnDateLine"];
             return $collection->model->updateFeature($feature, $collection, $body, $params);
         }
-        if (isset($body['properties']['visibility'])) {
-            RestoLogUtil::httpError(403, 'Forbidden to update item visibility');
-        }
-        if (empty($feature->visibility)) {
-            RestoLogUtil::httpError(403, 'No visibility');
-        }
-        $groups = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('in' => $feature->visibility));
+
+        $groups = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('in' => $collection->visibility));
 
         foreach ($groups as $group) {
             $canUpdateInGroup = $this->user->hasRightsTo(RestoGroup::updateItemRight($group['name']));
@@ -295,7 +290,7 @@ class FeaturesAPI
      *  @OA\Put(
      *      path="/collections/{collectionId}/items/{featureId}/properties",
      *      summary="Update feature properties",
-     *      description="Update properties for feature {featureId}. Allowed properties are one of : title, description, visibility, owner and status",
+     *      description="Update properties for feature {featureId}. Allowed properties are one of : title, description, owner and status",
      *      tags={"Feature"},
      *      @OA\Parameter(
      *         name="collectionId",
@@ -383,7 +378,7 @@ class FeaturesAPI
         }
 
         // A value key is mandatory
-        $allowed = array('title', 'description', 'visibility', 'owner', 'status');
+        $allowed = array('title', 'description', 'owner', 'status');
         foreach (array_keys($body) as $property) {
 
             if (! in_array($property, $allowed)) {
@@ -395,16 +390,6 @@ class FeaturesAPI
                 RestoLogUtil::httpError(403, 'You are not allowed to change property "owner"');
             }
 
-            // Convert visibility from names to ids
-            if ($property === 'visibility' && isset($body[$property])) {
-                $body[$property] = (new GeneralFunctions($this->context->dbDriver))->visibilityNamesToIds($body[$property]);
-                if (empty($body[$property])) {
-                    RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group');
-                }
-                if (!(new CatalogsFunctions($this->context->dbDriver))->canSeeCatalog($body[$property], $this->user, true)) {
-                    RestoLogUtil::httpError(403, 'You are not allowed to set the visibility to a group you are not part of');
-                }
-            }
         }
 
         return (new FeaturesFunctions($this->context->dbDriver))->updateFeatureProperties($feature, $body, $this->context, $this->user);
@@ -484,9 +469,10 @@ class FeaturesAPI
      */
     public function deleteFeature($params)
     {
+        $collection = $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load();
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
-            'collection' => $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load()
+            'collection' => $collection
         ));
 
         if (!$feature->isValid()) {
@@ -501,10 +487,7 @@ class FeaturesAPI
                 'catalogsUpdated' => $result['catalogsUpdated']
             ));
         }
-        if (empty($feature->visibility)) {
-            RestoLogUtil::httpError(403, 'No visibility');
-        }
-        $groups = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('in' => $feature->visibility));
+        $groups = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('in' => $collection->visibility));
 
         foreach ($groups as $group) {
             $canDeleteInGroup = $this->user->hasRightsTo(RestoGroup::deleteItemRight($group['name']));

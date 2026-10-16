@@ -68,7 +68,7 @@ class FiltersFunctions
     }
     
     /**
-     * Return search filters based on model and input search parameters
+     * Return search filters based on model and input search parameters FO
      *
      * @param array $paramsWithOperation
      * @param string $sortKey
@@ -78,14 +78,6 @@ class FiltersFunctions
     {
         $filters = array();
         $sortFilters = array();
-
-        /**
-         * Append filter for contextual search
-         */
-        $filterCS = $this->prepareFilterQueryVisibility($this->context->dbDriver->targetSchema . '.feature', $this->user);
-        if (isset($filterCS) && $filterCS !== '') {
-            $filters[] = $filterCS;
-        }
 
         /*
          * Skip the following
