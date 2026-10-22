@@ -253,7 +253,6 @@ An owned resource can only be updated and deleted by its owner or by a user with
 
 ### Visibility
 The following resources have a visibility status:
-* item
 * catalog
 * collection
 
@@ -276,27 +275,6 @@ First create John Doe user if not exist then create a group and add John Doe to 
         # Admin allows John Doe to create collection
         curl -X POST -d@examples/users/johnDoe_rights_collection.json "http://admin:admin@localhost:5252/users/johndoe/rights"
 
-#### Update an item to make it visible only to a group
-John Doe is in group dummyGroup and has right to create a collection:
-
-        # John Doe Create collection
-        curl -X POST -d@examples/collections/JohnDoeCollection.json "http://johndoe:dummy@localhost:5252/collections"
-
-        # And add an item to this collection
-        curl -X POST -d@examples/items/johnDoeItem.json "http://johndoe:dummy@localhost:5252/collections/JohnDoeCollection/items"
-
-        # This item is visible by everyone
-        curl "http://localhost:5252/collections/JohnDoeCollection/items"
-
-Now John Doe change the visibility of the item to dummyGroup only:
-
-        curl -X PUT -d@examples/items/johnDoeItem_visibility.json "http://johndoe:dummy@localhost:5252/collections/JohnDoeCollection/items/JohnDoeItem/properties"
-
-        # The item is not visible anymore to users
-        curl "http://localhost:5252/collections/JohnDoeCollection/items"
-
-        # Except to users belonging to dummyGroup (like John Doe)
-        curl "http://johndoe:dummy@localhost:5252/collections/JohnDoeCollection/items"
 
 #### Update a collection to make it visible only to a group
 John Doe change the visibility of the JohnDoeCollection to dummyGroup only:

@@ -199,10 +199,6 @@ class RestoFeatureUtil
                     $featureArray[$key] = array_merge($featureArray[$key], $this->getLinks(json_decode($value, true), $self));
                     break;
 
-                case 'visibility':
-                    $featureArray['properties']['visibility'] = RestoUtil::SQLTextArrayToPHP($value);
-                    break;
-
                 case 'bbox4326':
                     $featureArray['bbox'] = RestoGeometryUtil::box2dTobbox($value);
                     break;
