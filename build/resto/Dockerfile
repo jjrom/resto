@@ -7,18 +7,18 @@ COPY ./config.env .
 COPY ./docs/constants.php /constants.php
 
 RUN mkdir -p /docs && \
-    set -a && . ./config.env && set +a && \
-    openapi --bootstrap /constants.php --format json --output /docs/resto-api.json /app && \
-    api2html -o /docs/resto-api.html /docs/resto-api.json
+  set -a && . ./config.env && set +a && \
+  openapi --bootstrap /constants.php --format json --output /docs/resto-api.json /app && \
+  api2html -o /docs/resto-api.html /docs/resto-api.json
 
-FROM jjrom/nginx-fpm:8.3-1
+FROM jjrom/nginx-fpm:8.5-1
 LABEL maintainer="jerome.gasperi@gmail.com"
 
 # [IMPORTANT] S6_BEHAVIOUR_IF_STAGE2_FAILS set to 2 in order to restart the resto component until the database is ready
 ENV BUILD_DIR=./build/resto \
-    PHP_VERSION=8.3 \
-    RESTO_DEBUG=1 \
-    S6_BEHAVIOUR_IF_STAGE2_FAILS=2
+  PHP_VERSION=8.5 \
+  RESTO_DEBUG=1 \
+  S6_BEHAVIOUR_IF_STAGE2_FAILS=2
 
 # [TODO] Should be directly removed from jjrom/nginx-fpm 
 # Avoid "PHP Warning: GEOSGeometry::__toString()" error at startup
