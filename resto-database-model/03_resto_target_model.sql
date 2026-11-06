@@ -108,9 +108,6 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.feature (
     -- End of validity timestamp for this feature. If equal to started then feature is "instantaneous"
     completiondate      TIMESTAMP,
 
-    -- [INDEXED] Visibility - only user within a group with the same name as visibility can see feature
-    visibility          BIGINT[],
-
     -- [INDEXED] Owner of the feature. Reference __DATABASE_COMMON_SCHEMA__.user.id
     owner               BIGINT,
 
@@ -442,7 +439,6 @@ CREATE INDEX IF NOT EXISTS idx_collection_feature ON __DATABASE_TARGET_SCHEMA__.
 CREATE INDEX IF NOT EXISTS idx_startdateidx_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (startdate_idx);
 CREATE INDEX IF NOT EXISTS idx_createdidx_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (created_idx);
 CREATE INDEX IF NOT EXISTS idx_owner_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (owner) WHERE owner IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_visibility_feature ON __DATABASE_TARGET_SCHEMA__.feature USING GIN (visibility);
 CREATE INDEX IF NOT EXISTS idx_status_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (status);
 CREATE INDEX IF NOT EXISTS idx_centroid_feature ON __DATABASE_TARGET_SCHEMA__.feature USING GIST (centroid);
 CREATE INDEX IF NOT EXISTS idx_geom_feature ON __DATABASE_TARGET_SCHEMA__.feature USING GIST (geom);
