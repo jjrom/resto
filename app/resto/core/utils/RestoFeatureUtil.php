@@ -45,7 +45,7 @@ class RestoFeatureUtil
     public function __construct($context, $user, $collections)
     {
         $this->context = $context;
-        $this->user =$user;
+        $this->user = $user;
         $this->collections = $collections;
     }
 
@@ -112,7 +112,7 @@ class RestoFeatureUtil
             'type' => 'Feature',
             'id' => $rawFeatureArray['id'],
             'geometry' => null,
-            'properties' => array(),
+            'properties' => array('datetime' => null),
             'collection' => $collection->id,
             'links' => array(
                 array(
@@ -178,15 +178,20 @@ class RestoFeatureUtil
                     break;
 
                 case 'completionDate':
-                    $featureArray['properties']['end_datetime'] = $rawFeatureArray[$key];
+                    if (!isset($rawFeatureArray['metadata']) || (isset($rawFeatureArray['metadata']) && !isset($rawFeatureArray['metadata']['end_datetime']))) {
+                        $featureArray['properties']['end_datetime'] = $rawFeatureArray[$key];
+                    }
                     break;
 
                 case 'startDate':
                     if (isset($rawFeatureArray['completionDate'])) {
-                        $featureArray['properties']['start_datetime'] = $rawFeatureArray[$key];
-                    }
-                    else {
-                        $featureArray['properties']['datetime'] = $rawFeatureArray[$key];
+                         if (!isset($rawFeatureArray['metadata']) || (isset($rawFeatureArray['metadata']) && !isset($rawFeatureArray['metadata']['start_datetime']))) {
+                            $featureArray['properties']['start_datetime'] = $rawFeatureArray[$key];
+                        }
+                    } else {
+                           if (!isset($rawFeatureArray['metadata']) || (isset($rawFeatureArray['metadata']) && !isset($rawFeatureArray['metadata']['datetime']))) {
+                            $featureArray['properties']['datetime'] = $rawFeatureArray[$key];
+                        }
                     }
                     break;
 
@@ -196,7 +201,7 @@ class RestoFeatureUtil
                     break;
 
                 case 'links':
-                    $featureArray[$key] = array_merge($featureArray[$key], $this->getLinks(json_decode($value, true), $self));
+                    $featureArray[$key] = array_merge($featureArray[$key], $this->getLinks(json_decode($value, true)));
                     break;
 
                 case 'bbox4326':
@@ -218,15 +223,15 @@ class RestoFeatureUtil
                 case 'liked':
                     $featureArray['properties'][$key] = $value === 't' ? true : false;
                     break;
-                
+
                 case 'centroid':
                     $featureArray['properties'][$key] = json_decode($value, true)['coordinates'];
                     break;
-                
+
                 case 'status':
                 case 'likes':
                 case 'comments':
-                    $featureArray['properties'][$key] = (integer) $value;
+                    $featureArray['properties'][$key] = (int) $value;
                     break;
 
                 case 'metadata':
@@ -282,7 +287,7 @@ class RestoFeatureUtil
                     ),
                     array(
                         $collection->model->searchFilters['language']['osKey'] => $this->context->lang,
-                        
+
                     )
                 );
             }

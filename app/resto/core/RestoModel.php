@@ -692,8 +692,8 @@ abstract class RestoModel
         $stac_extensions = $featureArray['stac_extensions'] ?? [];
 
         foreach (array_keys($featureArray['properties']) as $key) {
-            // Remove null and non public properties
-            if (! isset($featureArray['properties'][$key]) || in_array($key, $discardedProperties)) {
+            // Remove discarded properties
+            if ( in_array($key, $discardedProperties)) {
                 continue;
             }
 
@@ -967,15 +967,12 @@ abstract class RestoModel
             if (isset($dates[1])) {
                 $properties['completionDate'] = $dates[1];
             }
-            unset($properties['datetime']);
         }
         if (isset($properties['start_datetime'])) {
             $properties['startDate'] = $properties['start_datetime'];
-            unset($properties['start_datetime']);
         }
         if (isset($properties['end_datetime'])) {
             $properties['completionDate'] = $properties['end_datetime'];
-            unset($properties['end_datetime']);
         }
 
         /*
