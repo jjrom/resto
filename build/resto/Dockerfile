@@ -11,7 +11,7 @@ RUN mkdir -p /docs && \
   openapi --bootstrap /constants.php --format json --output /docs/resto-api.json /app && \
   api2html -o /docs/resto-api.html /docs/resto-api.json
 
-FROM jjrom/nginx-fpm:8.5-1
+FROM jjrom/nginx-fpm:8.5-1-1
 LABEL maintainer="jerome.gasperi@gmail.com"
 
 # [IMPORTANT] S6_BEHAVIOUR_IF_STAGE2_FAILS set to 2 in order to restart the resto component until the database is ready
